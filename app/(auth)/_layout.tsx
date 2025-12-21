@@ -8,15 +8,12 @@ export default function AuthLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true, // show header by default
-        headerTransparent: true, // match your previous style
+        headerShown: true,
+        headerTransparent: true,
         headerTintColor: textColor,
       }}
     >
-      <Stack.Screen
-        name="Welcome"
-        options={{ headerShown: true, headerTitle: "Welcome" }}
-      />
+      <Stack.Screen name="index" options={{ headerTitle: "" }} />
       <Stack.Screen name="EnterPhone" options={{ headerTitle: "" }} />
       <Stack.Screen name="VerifyOTP" options={{ headerTitle: "" }} />
     </Stack>
