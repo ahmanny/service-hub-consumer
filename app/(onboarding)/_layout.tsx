@@ -9,15 +9,15 @@ export default function OnboardingLayout() {
   const user = useAuthStore((s) => s.user);
   const isProfileCompleted = user?.profileCompleted === true;
 
-  React.useEffect(() => {
-    if (!isAuthenticated) {
-      // redirect to auth if not logged in
-      router.replace("/Profile");
-    } else if (isProfileCompleted) {
-      // redirect to main app if profile is done
-      router.replace("/ProfileCompletion");
-    }
-  }, [isAuthenticated, isProfileCompleted]);
+  // React.useEffect(() => {
+  //   if (!isAuthenticated) {
+  //     // redirect to auth if not logged in
+  //     router.replace("/(auth)");
+  //   } else if (isProfileCompleted) {
+  //     // redirect to main app if profile is done
+  //     router.replace("/(tabs)");
+  //   }
+  // }, [isAuthenticated, isProfileCompleted]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

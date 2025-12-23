@@ -21,7 +21,7 @@ export default function Welcome() {
         {/* Primary CTA: OTP signup/login */}
         <ThemedButton
           title="Continue with Phone"
-          onPress={() => router.push("/ProfileCompletion")}
+          onPress={() => router.push("/(tabs)")}
           variant="primary"
         />
 

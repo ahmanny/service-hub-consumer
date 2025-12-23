@@ -38,8 +38,11 @@ export default function ProfileCompletion() {
     try {
       await mutateAsync(data);
       // Navigate to main app (tabs)
-      router.replace("/(tabs)/home"); // or your main tab screen
+      router.replace("/(tabs)"); // or your main tab screen
     } catch (err: any) {
+      console.log("====================================");
+      console.log(err);
+      console.log("====================================");
       Vibration.vibrate(50);
       if (Platform.OS === "android") {
         ToastAndroid.show(

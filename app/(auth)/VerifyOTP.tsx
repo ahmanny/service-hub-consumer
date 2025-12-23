@@ -74,7 +74,7 @@ export default function VerifyOTP() {
     try {
       await verifyMutateAsync({ phone, otp });
       Vibration.vibrate(50);
-      router.push("/(onboarding)/ProfileCompletion");
+      router.push("/ProfileCompletion");
     } catch (err: any) {
       Platform.OS === "android"
         ? ToastAndroid.show(err.message || "Failed", ToastAndroid.LONG)

@@ -29,7 +29,8 @@ export const Colors = {
     buttonSecondary: "#E5E7EB",    // secondary buttons
     placeholder: "#9CA3AF",        // input placeholders
     shadow: "rgba(0,0,0,0.1)",     // subtle shadows
-    danger: dangerRed               //for danger
+    danger: dangerRed,       //for danger
+    inactive: "#999",
   },
 
   dark: {
@@ -47,7 +48,8 @@ export const Colors = {
     buttonSecondary: "#374151",    // secondary buttons
     placeholder: "#6B7280",        // input placeholders
     shadow: "rgba(0,0,0,0.5)",     // darker shadows
-    danger: dangerRedDark          //danger for errors and the rest
+    danger: dangerRedDark,          //danger for errors and the rest
+    inactive: "#666",
   },
 };
 
