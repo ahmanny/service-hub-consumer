@@ -1,9 +1,19 @@
 // app/(auth)/_layout.tsx
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { Stack } from "expo-router";
+import { useAuthStore } from "@/stores/auth.store";
+import { Redirect, Stack } from "expo-router";
 
 export default function AuthLayout() {
   const textColor = useThemeColor({}, "text");
+  const hasProfile = useAuthStore((s) => s.hasProfile);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  if (hasProfile && isAuthenticated) {
+    return <Redirect href="/(tabs)" />;
+  }
+  if (!hasProfile && isAuthenticated) {
+    return <Redirect href="/(onboarding)" />;
+  }
 
   return (
     <Stack

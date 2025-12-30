@@ -50,6 +50,7 @@ export default function EnterPhone() {
     } catch (error) {
       const err = error as ApiError;
       const code = err.response?.data?.code ?? err.code;
+      console.log(err);
       const message =
         err.response?.data?.message ?? err.message ?? "Failed to send code";
 

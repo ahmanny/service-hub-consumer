@@ -1,26 +1,52 @@
 import { ConsumerProfile } from "@/types/user.types";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 type AuthState = {
     isAuthenticated: boolean;
-    user: null | ConsumerProfile
-    login: (user: AuthState["user"]) => void;
+    hasProfile: boolean;
+    user: ConsumerProfile | null;
+    hydrated: boolean;
+
+    login: (user: ConsumerProfile, hasProfile: boolean) => void;
     logout: () => void;
 };
 
-export const useAuthStore = create<AuthState>((set) => ({
-    isAuthenticated: false,
-    user: null,
 
-    login: (user) =>
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      isAuthenticated: false,
+      hasProfile: false,
+      user: null,
+      hydrated: false,
+
+      login: (user, hasProfile) =>
         set({
-            isAuthenticated: true,
-            user,
+          isAuthenticated: true,
+          user,
+          hasProfile,
         }),
 
-    logout: () =>
+      logout: () =>
         set({
-            isAuthenticated: false,
-            user: null,
+          isAuthenticated: false,
+          user: null,
+          hasProfile: false,
         }),
-}));
+    }),
+    {
+      name: "auth-store",
+      storage: createJSONStorage(() => AsyncStorage),
+
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.hydrated = true;
+        }
+      },
+    }
+  )
+);
+
+

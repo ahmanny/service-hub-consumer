@@ -4,3 +4,9 @@ export const completeProfile = async (payload: { firstName: string, lastName: st
     const { data } = await API.patch("/consumer/complete-profile", payload);
     return data
 };
+
+
+export async function fetchConsumerProfile() {
+    const { data } = await API.get("/consumer/me");
+    return data; // expected { hasProfile: boolean, profile: object | null }
+}

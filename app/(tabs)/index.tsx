@@ -1,9 +1,13 @@
 import LineRoute from "@/components/mapViews/LineRoute";
 import MapMarkers from "@/components/mapViews/Markers";
 
+import BookingSetupSheet from "@/components/BottomSheets/BookingSetupSheet";
+import BookingSheet from "@/components/BottomSheets/BookingSheet";
+import ProvidersSheet from "@/components/BottomSheets/ProvidersSheet";
+import SearchSheet from "@/components/BottomSheets/SearchSheet";
 import { useService } from "@/providers/service.provider";
-import Mapbox, { Camera, LocationPuck, MapView } from "@rnmapbox/maps";
-import React from "react";
+import Mapbox, { LocationPuck } from "@rnmapbox/maps";
+import React, { useRef } from "react";
 import { StyleSheet, View } from "react-native";
 
 const accessToken =
@@ -12,20 +16,50 @@ const accessToken =
 Mapbox.setAccessToken(accessToken);
 
 export default function Home() {
-  const {
-    setSelectedServce,
-    direction,
-    directionCoordinates,
-    distance,
-    duration,
-  } = useService();
+  const cameraRef = useRef<Mapbox.Camera>(null);
+  const { selectedProvider, userLocation, activeSheet } = useService();
 
-  // console.log("Time:", duration);
+  const directionCoordinates = selectedProvider?.directionCoordinates;
 
   return (
     <View style={styles.container}>
-      <MapView style={styles.map}>
-        <Camera followZoomLevel={14} followUserLocation />
+      <View
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          marginLeft: -16,
+          marginTop: -32,
+        }}
+      >
+        <View
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: "black",
+            borderWidth: 3,
+            borderColor: "white",
+            // transform: [{ scale: isMoving ? 1.1 : 1 }],
+          }}
+        />
+      </View>
+
+      <Mapbox.MapView
+        style={styles.map}
+        // styleURL={"mapbox://styles/mapbox/dark-v11"}
+        logoEnabled={false}
+        compassEnabled
+        compassPosition={{ top: 40, right: 7 }}
+      >
+        <Mapbox.Camera
+          ref={cameraRef}
+          centerCoordinate={userLocation}
+          zoomLevel={15}
+          animationMode="moveTo"
+          animationDuration={1200}
+        />
         <LocationPuck
           puckBearingEnabled={true}
           puckBearing="course"
@@ -36,7 +70,11 @@ export default function Home() {
         {directionCoordinates && (
           <LineRoute coordinates={directionCoordinates} />
         )}
-      </MapView>
+      </Mapbox.MapView>
+      {activeSheet === "search" && <SearchSheet />}
+      {activeSheet === "booking_setup" && <BookingSetupSheet />}
+      {activeSheet === "providers" && <ProvidersSheet />}
+      {activeSheet === "booking" && <BookingSheet />}
     </View>
   );
 }

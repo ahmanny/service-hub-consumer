@@ -7,7 +7,7 @@ import {
   useVerifyOtp,
 } from "@/hooks/auth/useAuths";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
 import {
   Alert,
@@ -74,7 +74,7 @@ export default function VerifyOTP() {
     try {
       await verifyMutateAsync({ phone, otp });
       Vibration.vibrate(50);
-      router.push("/ProfileCompletion");
+      router.push("/(onboarding)");
     } catch (err: any) {
       Platform.OS === "android"
         ? ToastAndroid.show(err.message || "Failed", ToastAndroid.LONG)

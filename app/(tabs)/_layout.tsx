@@ -5,24 +5,23 @@ import { useColorScheme } from "@/hooks/use-color-scheme.web";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import ServiceProvider from "@/providers/service.provider";
 import { useAuthStore } from "@/stores/auth.store";
-import { Tabs, useRouter } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import * as React from "react";
 
 export default function TabsLayout() {
-  const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const user = useAuthStore((s) => s.user);
-  const isProfileCompleted = user?.profileCompleted === true;
+  const hasProfile = useAuthStore((s) => s.hasProfile);
 
   const colorScheme = useColorScheme();
 
-  // React.useEffect(() => {
-  //   if (!isAuthenticated) {
-  //     router.replace("/(auth)");
-  //   } else if (!isProfileCompleted) {
-  //     router.replace("/(onboarding)/ProfileCompletion");
-  //   }
-  // }, [isAuthenticated, isProfileCompleted]);
+  // Not logged in → auth
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)" />;
+  }
+  // No profile → onboarding
+  if (!hasProfile) {
+    return <Redirect href="/(onboarding)" />;
+  }
 
   return (
     <ServiceProvider>

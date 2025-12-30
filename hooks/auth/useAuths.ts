@@ -1,7 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
-import { resendotp, sendotp, verifyotp, getotpcooldown } from "@/services/auth.service";
-import { saveTokens } from "@/stores/auth.tokens";
+import { getotpcooldown, resendotp, sendotp, verifyotp } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/auth.store";
+import { saveTokens } from "@/stores/auth.tokens";
+import { useMutation } from "@tanstack/react-query";
 
 export const useSendOtp = () => {
     return useMutation({
@@ -34,12 +34,13 @@ export const useVerifyOtp = () => {
     return useMutation({
         mutationFn: verifyotp,
         onSuccess: async (data) => {
-            const { access_token, refresh_token, user } = data.tokens;
+            const { tokens, hasProfile, profile: user } = data
+            const { access_token, refresh_token } = tokens;
             await saveTokens({
                 accessToken: access_token,
                 refreshToken: refresh_token,
             });
-            setAuthenticated(user);
+            setAuthenticated(user, hasProfile);
             console.log(data)
         },
     });

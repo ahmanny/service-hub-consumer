@@ -1,13 +1,25 @@
 import { Image } from "expo-image";
-import { Platform, StyleSheet } from "react-native";
+import { FlatList, Platform, StyleSheet, TouchableOpacity } from "react-native";
 
 import { HelloWave } from "@/components/hello-wave";
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Link } from "expo-router";
+import { ThemedButton } from "@/components/ui/Themed";
+import ThemedCard from "@/components/ui/Themed/ThemedCard";
+import { useLogout } from "@/hooks/auth/useLogout";
+import { Link, useRouter } from "expo-router";
+const RECENT_SERVICES = [
+  "Plumber",
+  "Electrician",
+  "House Cleaning",
+  "Car Wash",
+  "Babysitter",
+];
 
 export default function Profile() {
+  const router = useRouter();
+  const { mutateAsync, isPending, error } = useLogout();
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
@@ -18,10 +30,38 @@ export default function Profile() {
         />
       }
     >
+      <FlatList
+        data={RECENT_SERVICES}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        scrollToOverflowEnabled
+        contentContainerStyle={{ paddingRight: 20 }}
+        keyExtractor={(item) => item}
+        renderItem={({ item }) => (
+          <TouchableOpacity>
+            <ThemedCard>
+              <ThemedText>{item}</ThemedText>
+            </ThemedCard>
+          </TouchableOpacity>
+        )}
+      />
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
+      <ThemedButton
+        title="Logout"
+        loading={isPending}
+        onPress={() =>
+          mutateAsync(
+            void {
+              onSuccess: () => {
+                router.push("/(auth)");
+              },
+            }
+          )
+        }
+      />
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
         <ThemedText>

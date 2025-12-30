@@ -1,61 +1,96 @@
-import pin from "@/assets/images/pin.png";
-import services from "@/data/providers.json";
+import pinBarber from "@/assets/images/pins/barber.png";
+import pinCleaning from "@/assets/images/pins/cleaning.png";
+import pinElectrician from "@/assets/images/pins/electrician.png";
+import pinHair from "@/assets/images/pins/hair.png";
+import pinPlumber from "@/assets/images/pins/plumber.png";
+
+import providers from "@/data/mockProviders.json";
 import { useService } from "@/providers/service.provider";
 import { CircleLayer, Images, ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import { featureCollection, point } from "@turf/helpers";
 import React from "react";
 
+const SERVICE_ICONS: Record<string, string> = {
+  Plumber: "pin-plumber",
+  Electrician: "pin-electrician",
+  "House Cleaning": "pin-cleaning",
+  Barber: "pin-barber",
+  "Hair Stylist": "pin-hair",
+};
+
 export default function MapMarkers() {
-  const { setSelectedServce } = useService();
-  const points = services.map((service) =>
-    point([service.long, service.lat], { service })
+  const { setSelectedProvider } = useService();
+  const points = providers.map((provider) =>
+    point([provider.location.longitude, provider.location.latitude], {
+      icon: SERVICE_ICONS[provider.service] ?? "pin-plumber",
+      ...provider,
+    })
   );
-  const onPointPress = async (event: any) => {
-    // console.log(JSON.stringify(event, null, 2));
-    if (event.features[0].properties.service) {
-      setSelectedServce(event.features[0].properties.service);
-    }
-  };
+  // const onPointPress = async (event: any) => {
+  //   const feature = event.features?.[0];
+  //   if (!feature) return;
+
+  //   console.log(feature);
+
+  //   const provider = feature.properties;
+
+  //   if (provider) {
+  //     setSelectedProvider(provider);
+  //   }
+  // };
+
   return (
     <ShapeSource
       id="providers"
       shape={featureCollection(points)}
       cluster
-      onPress={(e) => onPointPress(e)}
+      clusterRadius={50}
+      // onPress={(e) => onPointPress(e)}
     >
-      <SymbolLayer
-        id="clusters-count"
-        style={{
-          textField: ["get", "point_count"],
-          textSize: 18,
-          textColor: "#ffffff",
-          textPitchAlignment: "map",
-        }}
-      />
+      {/* CLUSTER CIRCLE */}
       <CircleLayer
-        belowLayerID="clusters-count"
         id="clusters"
         filter={["has", "point_count"]}
         style={{
           circlePitchAlignment: "map",
-          circleColor: "#42E100",
-          circleRadius: 20,
-          circleOpacity: 1,
+          circleColor: "#13A354",
+          circleRadius: 15,
+          circleOpacity: 0.9,
           circleStrokeWidth: 2,
-          circleStrokeColor: "white",
+          circleStrokeColor: "#ffffff",
         }}
       />
+      {/* CLUSTER COUNT */}
+      <SymbolLayer
+        id="clusters-count"
+        filter={["has", "point_count"]}
+        style={{
+          textField: ["get", "point_count"],
+          textSize: 18,
+          textColor: "#ffffff",
+          textIgnorePlacement: true,
+        }}
+      />
+
       <SymbolLayer
         id="provider-icons"
         filter={["!", ["has", "point_count"]]}
         style={{
-          iconImage: "pin",
-          iconSize: 0.5,
+          iconImage: ["get", "icon"],
+          iconSize: 0.6,
           iconAllowOverlap: true,
           iconAnchor: "bottom",
         }}
       />
-      <Images images={{ pin }} />
+      <Images
+        images={{
+          "pin-plumber": pinPlumber,
+          "pin-electrician": pinElectrician,
+          "pin-cleaning": pinCleaning,
+          "pin-barber": pinBarber,
+          "pin-hair": pinHair,
+        }}
+      />
     </ShapeSource>
   );
 }

@@ -1,27 +1,23 @@
 // app/(onboarding)/_layout.tsx
 import { useAuthStore } from "@/stores/auth.store";
-import { Stack, useRouter } from "expo-router";
+import { Redirect, Stack } from "expo-router";
 import * as React from "react";
 
 export default function OnboardingLayout() {
-  const router = useRouter();
+  const hasProfile = useAuthStore((s) => s.hasProfile);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const user = useAuthStore((s) => s.user);
-  const isProfileCompleted = user?.profileCompleted === true;
 
-  // React.useEffect(() => {
-  //   if (!isAuthenticated) {
-  //     // redirect to auth if not logged in
-  //     router.replace("/(auth)");
-  //   } else if (isProfileCompleted) {
-  //     // redirect to main app if profile is done
-  //     router.replace("/(tabs)");
-  //   }
-  // }, [isAuthenticated, isProfileCompleted]);
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)" />;
+  }
+
+  if (hasProfile && isAuthenticated) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="ProfileCompletion" />
+      <Stack.Screen name="index" />
     </Stack>
   );
 }

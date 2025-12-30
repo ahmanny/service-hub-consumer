@@ -1,11 +1,11 @@
+import { useThemeColor } from "@/hooks/use-theme-color";
 import {
-  Pressable,
   ActivityIndicator,
+  Pressable,
+  PressableProps,
   StyleProp,
   ViewStyle,
-  PressableProps,
 } from "react-native";
-import { useThemeColor } from "@/hooks/use-theme-color";
 import { ThemedText } from "./ThemedText";
 
 type ButtonProps = PressableProps & {
@@ -46,7 +46,7 @@ export function ThemedButton({
           borderRadius: 16,
           alignItems: "center",
           justifyContent: "center",
-          opacity: rest.disabled || loading ? 0.8 : 1,
+          opacity: rest.disabled || loading ? 0.6 : 1,
         },
         borderStyle,
         style,
