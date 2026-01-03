@@ -1,5 +1,7 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { formatNumber } from "@/lib/utils";
 import { ProviderSearchResult } from "@/types/provider.types";
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import ThemedCard from "../ui/Themed/ThemedCard";
@@ -41,21 +43,27 @@ export default function ProviderResultCard({
                   <Text style={styles.closestText}>Closest</Text>
                 </View>
               )}
-              <Text style={styles.star}>★</Text>
-              <Text style={[styles.ratingText, { color: textColor }]}>
-                {item.rating.toFixed(1)}
-              </Text>
             </View>
           </View>
 
           {/* Middle row */}
           <View style={styles.middleRow}>
-            <Text style={[styles.metaText, { color: muted }]}>
-              {item.distance} km • {item.duration} mins away
-            </Text>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 14 }}
+            >
+              <View style={styles.rating}>
+                <Ionicons name="star" style={styles.star} />
+                <Text style={[styles.ratingText, { color: textColor }]}>
+                  {item.rating.toFixed(1)}
+                </Text>
+              </View>
+              <Text style={[styles.metaText, { color: muted }]}>
+                {item.distance} km • {item.duration} mins away
+              </Text>
+            </View>
             {/* Price */}
             <Text style={[styles.price, { color: textColor }]}>
-              ₦ {item.basePriceFrom.toLocaleString()}
+              ₦ {item.price ? formatNumber(item.price) : "3,000"}
             </Text>
 
             {/* Commented out availability mode for now */}
@@ -142,7 +150,7 @@ const styles = StyleSheet.create({
   },
 
   ratingText: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: "500",
   },
 

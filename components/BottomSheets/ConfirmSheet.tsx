@@ -7,12 +7,13 @@ import { BookingCard } from "../Booking/BookingCard";
 import { BookingCardSkeleton } from "../skeletons/BookingCardSkeleton";
 import { ThemedButton } from "../ui/Themed";
 
-export default function BookingSheet() {
-  const { selectedProvider, activeSheet, bookingSetup } = useService();
+export default function ConfirmSheet() {
+  const { selectedProvider, activeSheet, bookingSetup, setActiveSheet } =
+    useService();
 
   const { data, isFetching } = useProviderDetails({
     providerId: selectedProvider?._id,
-    enabled: activeSheet === "booking",
+    enabled: activeSheet === "confirm",
   });
 
   const bookingBottomSheetRef = useRef<BottomSheet>(null);
@@ -25,7 +26,7 @@ export default function BookingSheet() {
   }, [data]);
 
   useEffect(() => {
-    if (activeSheet !== "booking") {
+    if (activeSheet !== "confirm") {
       bookingBottomSheetRef.current?.close();
     }
     if (!selectedProvider) {
@@ -36,7 +37,7 @@ export default function BookingSheet() {
   return (
     <BottomSheet
       ref={bookingBottomSheetRef}
-      index={activeSheet === "booking" ? 1 : -1}
+      index={activeSheet === "confirm" ? 1 : -1}
       snapPoints={["30%"]}
       enablePanDownToClose={false}
       backgroundStyle={{
@@ -56,20 +57,24 @@ export default function BookingSheet() {
         ) : (
           <>
             {selectedProvider && data && (
-              <BookingCard
-                provider={{
-                  ...selectedProvider,
-                  homeServiceAvailable: data.provider.homeServiceAvailable,
-                  services: data.provider.services,
-                }}
-                bookingSetup={bookingSetup}
-              />
+              <>
+                <BookingCard
+                  provider={{
+                    ...selectedProvider,
+                    homeServiceAvailable: data.provider.homeServiceAvailable,
+                    services: data.provider.services,
+                  }}
+                  bookingSetup={bookingSetup}
+                />
+              </>
             )}
             <ThemedButton
               title="Confirm Booking"
               variant="primary"
-              // onPress={() => console.log("Booking:", selectedProvider)}
-              // disabled={!selectedProvider}
+              onPress={() => {
+                console.log("Booking:", selectedProvider);
+                setActiveSheet("waiting");
+              }}
             />
           </>
         )}

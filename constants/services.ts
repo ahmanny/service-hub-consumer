@@ -46,7 +46,7 @@ export const AVAILABLE_SERVICES = Object.keys(SERVICE_META);
 
 export const BARBER_SERVICES = [
     { name: "Basic Haircut", value: "basic_haircut" },
-    { name: "Carving", value: "carviing" },
+    { name: "Carving", value: "carving" },
     { name: "Haircut + Beard Trim", value: "haircut_beard" },
     { name: "Grooming Service", value: "home_grooming" },
     { name: "Premium Full Grooming", value: "premium_grooming" },

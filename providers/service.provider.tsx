@@ -11,7 +11,7 @@ import {
 } from "react";
 import { ActivityIndicator, BackHandler } from "react-native";
 
-type ActiveSheet = "search" | "booking_setup" | "providers" | "booking" | null;
+type ActiveSheet = "search" | "providers" | "confirm" | "waiting";
 
 type ServiceContextType = {
   selectedService: ServiceType | undefined;
@@ -37,7 +37,9 @@ type ServiceContextType = {
   setDirectionCoordinates: React.Dispatch<React.SetStateAction<any>>;
 
   bookingSetup: BookingSetupInfo | null;
-  setBookingSetup: React.Dispatch<React.SetStateAction<BookingSetupInfo | null>>;
+  setBookingSetup: React.Dispatch<
+    React.SetStateAction<BookingSetupInfo | null>
+  >;
 };
 
 const FALLBACK_LOCATION: [number, number] = [3.3792, 6.5244];
@@ -57,7 +59,9 @@ export default function ServiceProvider({ children }: PropsWithChildren) {
 
   const [selectedService, setSelectedService] = useState<ServiceType>();
 
-  const [bookingSetup, setBookingSetup] = useState<BookingSetupInfo | null>(null);
+  const [bookingSetup, setBookingSetup] = useState<BookingSetupInfo | null>(
+    null
+  );
 
   const [selectedProvider, setSelectedProvider] = useState<
     ProviderSearchResult | undefined
@@ -92,18 +96,17 @@ export default function ServiceProvider({ children }: PropsWithChildren) {
       setSelectedProvider(undefined);
     }
     const onBackPress = () => {
-      if (activeSheet === "booking_setup") {
-        setActiveSheet("search");
-        return true; // prevent app exit
-      }
-
       if (activeSheet === "providers") {
-        setActiveSheet("booking_setup");
+        setActiveSheet("search");
         return true;
       }
 
-      if (activeSheet === "booking") {
+      if (activeSheet === "confirm") {
         setActiveSheet("providers");
+        return true;
+      }
+      if (activeSheet === "waiting") {
+        setActiveSheet("search");
         return true;
       }
 

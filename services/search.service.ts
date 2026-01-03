@@ -15,7 +15,7 @@ export async function searchProviders({ serviceType, lat, lng, bookingDateTime, 
 
     if (locationType) params.append("locationType", locationType);
     const { data } = await API
-        .get(`/consumer/search/providers?serviceType=${serviceType}&lat=${lat}&lng=${lng}`);
+        .get(`/consumer/search/providers?${params.toString()}`);
     return data;
 }
 

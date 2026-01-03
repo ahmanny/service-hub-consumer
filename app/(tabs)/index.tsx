@@ -1,10 +1,10 @@
 import LineRoute from "@/components/mapViews/LineRoute";
 import MapMarkers from "@/components/mapViews/Markers";
 
-import BookingSetupSheet from "@/components/BottomSheets/BookingSetupSheet";
-import BookingSheet from "@/components/BottomSheets/BookingSheet";
+import ConfirmSheet from "@/components/BottomSheets/ConfirmSheet";
 import ProvidersSheet from "@/components/BottomSheets/ProvidersSheet";
 import SearchSheet from "@/components/BottomSheets/SearchSheet";
+import WaitingSheet from "@/components/BottomSheets/WaitingSheet";
 import { useService } from "@/providers/service.provider";
 import Mapbox, { LocationPuck } from "@rnmapbox/maps";
 import React, { useRef } from "react";
@@ -72,9 +72,9 @@ export default function Home() {
         )}
       </Mapbox.MapView>
       {activeSheet === "search" && <SearchSheet />}
-      {activeSheet === "booking_setup" && <BookingSetupSheet />}
       {activeSheet === "providers" && <ProvidersSheet />}
-      {activeSheet === "booking" && <BookingSheet />}
+      {activeSheet === "confirm" && <ConfirmSheet />}
+      {activeSheet === "waiting" && <WaitingSheet />}
     </View>
   );
 }

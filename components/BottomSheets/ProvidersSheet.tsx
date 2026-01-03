@@ -23,7 +23,7 @@ export default function ProvidersSheet() {
   const handleSelectProvider = async () => {
     // Close UI immediately
     Keyboard.dismiss();
-    setActiveSheet("booking");
+    setActiveSheet("confirm");
   };
 
   const { data: nearbyProviders, isFetching } = useSearchProviders(

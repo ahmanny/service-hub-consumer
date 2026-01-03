@@ -27,7 +27,8 @@ export interface ProviderSearchResult {
   firstName: string;
   serviceType: ServiceType;
   availabilityMode: "instant" | "schedule" | "offline";
-  basePriceFrom: number;
+  price: number;
+  serviceName: string;
   rating: number;
   profilePicture?: string | null;
   distance: number | null;               // in meters
@@ -53,6 +54,6 @@ export interface SearchProvidersParams {
 
 export interface BookingSetupInfo {
   service: string;
-  locationType: "shop" | "home" | null;
+  locationType: "shop" | "home" | string | null;
   bookingDateTime: string;
 }

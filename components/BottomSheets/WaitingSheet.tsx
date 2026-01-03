@@ -2,26 +2,18 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { useService } from "@/providers/service.provider";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import React, { useEffect, useRef } from "react";
-import { Keyboard } from "react-native";
-import BookingSetup from "../Booking/BookingSetup";
+import { WaitingBooking } from "../Booking/WaitingBooking";
 
-export default function BookingSetupSheet() {
-  const { selectedService, activeSheet, setActiveSheet, setBookingSetup } =
-    useService();
+export default function WaitingSheet() {
+  const { selectedProvider, activeSheet, bookingSetup } = useService();
 
   const bookingBottomSheetRef = useRef<BottomSheet>(null);
 
-  const handleBookingSetup = () => {
-    // Close UI immediately
-    Keyboard.dismiss();
-    setActiveSheet("providers");
-  };
-
   useEffect(() => {
-    if (activeSheet !== "booking_setup") {
+    if (activeSheet !== "waiting") {
       bookingBottomSheetRef.current?.close();
     }
-    if (!selectedService) {
+    if (!selectedProvider) {
       bookingBottomSheetRef.current?.close();
     }
   }, [activeSheet]);
@@ -29,7 +21,7 @@ export default function BookingSetupSheet() {
   return (
     <BottomSheet
       ref={bookingBottomSheetRef}
-      index={activeSheet === "booking_setup" ? 1 : -1}
+      index={activeSheet === "waiting" ? 1 : -1}
       snapPoints={["30%"]}
       enablePanDownToClose={false}
       backgroundStyle={{
@@ -44,11 +36,7 @@ export default function BookingSetupSheet() {
       }}
     >
       <BottomSheetView style={{ flex: 1, padding: 16, gap: 12 }}>
-        <BookingSetup
-          selectedService={selectedService!}
-          handleBookingSetup={handleBookingSetup}
-          setBookingSetup={setBookingSetup}
-        />
+        <WaitingBooking providerFirstName="Solomone" />
       </BottomSheetView>
     </BottomSheet>
   );
