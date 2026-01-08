@@ -33,7 +33,7 @@ export function ThemedText({
         type === "defaultSemiBold" ? styles.defaultSemiBold : undefined,
         type === "subtitle" ? styles.subtitle : undefined,
         type === "link" ? styles.link : undefined,
-        type === "error" ? styles.link : undefined,
+        type === "error" ? styles.error : undefined,
         style,
       ]}
       {...rest}
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     fontSize: 16,
     lineHeight: 24,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   title: {
     fontFamily: "Inter_500Medium",

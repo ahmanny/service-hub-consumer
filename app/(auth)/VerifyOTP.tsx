@@ -22,6 +22,7 @@ import { OtpInput } from "react-native-otp-entry";
 export default function VerifyOTP() {
   const router = useRouter();
   const { phone } = useLocalSearchParams<{ phone: string }>();
+  const displayPhone = phone || "No number provided";
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(0);
@@ -120,7 +121,7 @@ export default function VerifyOTP() {
           >
             Verify OTP
           </ThemedText>
-          <ThemedText>Enter the 4-digit code sent to +{phone}</ThemedText>
+          <ThemedText>Enter the 4-digit code sent to {displayPhone}</ThemedText>
           <OtpInput
             numberOfDigits={4}
             autoFocus

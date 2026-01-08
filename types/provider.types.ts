@@ -22,12 +22,15 @@ export interface ProviderWithRoute extends ProviderProfile {
 }
 
 
+
+
 export interface ProviderSearchResult {
   _id: string;
   firstName: string;
   serviceType: ServiceType;
   availabilityMode: "instant" | "schedule" | "offline";
   price: number;
+  homeServiceFee?: number | null
   serviceName: string;
   rating: number;
   profilePicture?: string | null;
@@ -35,14 +38,6 @@ export interface ProviderSearchResult {
   duration: number | null;               // in seconds
   directionCoordinates: any | null;      // geometry coordinates from directions API
   isClosest: boolean;
-}
-
-export interface ProviderWithServices extends ProviderSearchResult {
-  homeServiceAvailable: boolean;
-  services: {
-    name: string;
-    price: number;
-  }[];
 }
 
 
@@ -56,4 +51,7 @@ export interface BookingSetupInfo {
   service: string;
   locationType: "shop" | "home" | string | null;
   bookingDateTime: string;
+  locationSource?: "manual" | "current" | null;
+  addressText?: string | null;
+  note?: string | null;
 }

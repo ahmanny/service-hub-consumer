@@ -1,29 +1,21 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { useProviderDetails } from "@/hooks/useSearchProviders";
 import { useService } from "@/providers/service.provider";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import React, { useEffect, useRef } from "react";
-import { BookingCard } from "../Booking/BookingCard";
-import { BookingCardSkeleton } from "../skeletons/BookingCardSkeleton";
-import { ThemedButton } from "../ui/Themed";
+import { Keyboard, StyleSheet, View } from "react-native";
+import { BookingConfirmationCard } from "../BookingRequest/BookingConfirmationCard";
+import { ThemedButton, ThemedText } from "../ui/Themed";
 
 export default function ConfirmSheet() {
-  const { selectedProvider, activeSheet, bookingSetup, setActiveSheet } =
-    useService();
-
-  const { data, isFetching } = useProviderDetails({
-    providerId: selectedProvider?._id,
-    enabled: activeSheet === "confirm",
-  });
+  const {
+    selectedProvider,
+    activeSheet,
+    bookingSetup,
+    setActiveSheet,
+    setBookingSetup,
+  } = useService();
 
   const bookingBottomSheetRef = useRef<BottomSheet>(null);
-
-  useEffect(() => {
-    if (data) {
-      console.log(activeSheet);
-      console.log("Provider", data.provider);
-    }
-  }, [data]);
 
   useEffect(() => {
     if (activeSheet !== "confirm") {
@@ -34,12 +26,25 @@ export default function ConfirmSheet() {
     }
   }, [activeSheet]);
 
+  useEffect(() => {
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
+      if (activeSheet === "confirm") {
+        bookingBottomSheetRef.current?.snapToIndex(0);
+      }
+    });
+
+    return () => {
+      hideSub.remove();
+    };
+  }, [activeSheet]);
+
   return (
     <BottomSheet
       ref={bookingBottomSheetRef}
       index={activeSheet === "confirm" ? 1 : -1}
-      snapPoints={["30%"]}
+      snapPoints={["50%"]}
       enablePanDownToClose={false}
+      animateOnMount={true}
       backgroundStyle={{
         backgroundColor: useThemeColor({}, "background"),
         borderTopLeftRadius: 24,
@@ -52,33 +57,38 @@ export default function ConfirmSheet() {
       }}
     >
       <BottomSheetView style={{ flex: 1, padding: 16, gap: 12 }}>
-        {isFetching ? (
-          <BookingCardSkeleton />
-        ) : (
-          <>
-            {selectedProvider && data && (
-              <>
-                <BookingCard
-                  provider={{
-                    ...selectedProvider,
-                    homeServiceAvailable: data.provider.homeServiceAvailable,
-                    services: data.provider.services,
-                  }}
-                  bookingSetup={bookingSetup}
-                />
-              </>
-            )}
-            <ThemedButton
-              title="Confirm Booking"
-              variant="primary"
-              onPress={() => {
-                console.log("Booking:", selectedProvider);
-                setActiveSheet("waiting");
-              }}
+        {selectedProvider && (
+          <View style={{ flex: 1 }}>
+            <ThemedText type="defaultSemiBold" style={styles.sheetTitle}>
+              Review Booking
+            </ThemedText>
+
+            <BookingConfirmationCard
+              provider={selectedProvider}
+              bookingSetup={bookingSetup!}
+              onNoteChange={(note: string) =>
+                setBookingSetup({ ...bookingSetup!, note: note })
+              }
             />
-          </>
+
+            <View style={styles.footer}>
+              <ThemedButton
+                title="Confirm & Request"
+                variant="primary"
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setActiveSheet("waiting");
+                }}
+              />
+            </View>
+          </View>
         )}
       </BottomSheetView>
     </BottomSheet>
   );
 }
+
+const styles = StyleSheet.create({
+  sheetTitle: { fontSize: 20, marginBottom: 20, textAlign: "center" },
+  footer: { marginTop: "auto", paddingTop: 20 },
+});

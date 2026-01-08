@@ -1,18 +1,18 @@
-import { ActivityIndicator, Text, useColorScheme, View } from "react-native";
+import { ActivityIndicator, useColorScheme } from "react-native";
+import { ThemedText, ThemedView } from "./ui/Themed";
 
 export default function SplashScreen() {
   const theme = useColorScheme();
 
   return (
-    <View
+    <ThemedView
       style={{
         flex: 1,
-        backgroundColor: theme === "dark" ? "#000" : "#fff",
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <Text
+      <ThemedText
         style={{
           fontSize: 28,
           fontWeight: "700",
@@ -20,9 +20,9 @@ export default function SplashScreen() {
         }}
       >
         YourApp
-      </Text>
+      </ThemedText>
 
       <ActivityIndicator size="large" />
-    </View>
+    </ThemedView>
   );
 }

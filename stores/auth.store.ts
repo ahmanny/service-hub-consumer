@@ -4,13 +4,15 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 type AuthState = {
-    isAuthenticated: boolean;
-    hasProfile: boolean;
-    user: ConsumerProfile | null;
-    hydrated: boolean;
+  isAuthenticated: boolean;
+  hasProfile: boolean;
+  user: ConsumerProfile | null;
+  hydrated: boolean;
+  userLocation: [number, number] | null;
+  setLocation: (location: [number, number]) => void;
 
-    login: (user: ConsumerProfile, hasProfile: boolean) => void;
-    logout: () => void;
+  login: (user: ConsumerProfile, hasProfile: boolean) => void;
+  logout: () => void;
 };
 
 
@@ -21,6 +23,8 @@ export const useAuthStore = create<AuthState>()(
       hasProfile: false,
       user: null,
       hydrated: false,
+      userLocation: null,
+      setLocation: (location) => set({ userLocation: location }),
 
       login: (user, hasProfile) =>
         set({

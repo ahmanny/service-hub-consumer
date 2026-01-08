@@ -37,8 +37,7 @@ export default function ProfileCompletion() {
   const onSubmit = async (data: ProfileFormData) => {
     try {
       await mutateAsync(data);
-      // Navigate to main app (tabs)
-      router.replace("/(tabs)"); // or your main tab screen
+      router.replace("/(tabs)");
     } catch (err: any) {
       console.log(err);
       Vibration.vibrate(50);

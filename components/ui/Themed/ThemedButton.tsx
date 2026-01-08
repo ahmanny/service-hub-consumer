@@ -4,6 +4,7 @@ import {
   Pressable,
   PressableProps,
   StyleProp,
+  TextStyle,
   ViewStyle,
 } from "react-native";
 import { ThemedText } from "./ThemedText";
@@ -13,6 +14,7 @@ type ButtonProps = PressableProps & {
   loading?: boolean;
   variant?: "primary" | "secondary" | "outline";
   style?: StyleProp<ViewStyle>;
+  btnTextStyle?:StyleProp<TextStyle>;
 };
 
 export function ThemedButton({

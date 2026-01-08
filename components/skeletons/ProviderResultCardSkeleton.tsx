@@ -1,37 +1,26 @@
-import { useThemeColor } from "@/hooks/use-theme-color";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import ThemedCard from "../ui/Themed/ThemedCard";
+import { ShimmerSkeleton } from "@/components/ui/ShimmerSkeleton";
 
 export default function ProviderResultCardSkeleton() {
-  const skeletonBg = useThemeColor({}, "border"); // subtle gray placeholder
-  const iconBg = useThemeColor({}, "placeholder"); // for icon
-
   return (
     <ThemedCard style={styles.card}>
       {/* Left Icon */}
-      <View style={[styles.iconWrap, { backgroundColor: iconBg }]} />
+      <ShimmerSkeleton width={46} height={46} borderRadius={23} />
 
       {/* Content */}
       <View style={styles.content}>
         {/* Top Row: Name + Rating */}
         <View style={styles.topRow}>
-          <View
-            style={[styles.nameSkeleton, { backgroundColor: skeletonBg }]}
-          />
-          <View
-            style={[styles.ratingSkeleton, { backgroundColor: skeletonBg }]}
-          />
+          <ShimmerSkeleton width="50%" height={16} borderRadius={4} />
+          <ShimmerSkeleton width={40} height={14} borderRadius={4} />
         </View>
 
         {/* Bottom Row: Distance + Price */}
         <View style={styles.bottomRow}>
-          <View
-            style={[styles.metaSkeleton, { backgroundColor: skeletonBg }]}
-          />
-          <View
-            style={[styles.priceSkeleton, { backgroundColor: skeletonBg }]}
-          />
+          <ShimmerSkeleton width="40%" height={12} borderRadius={4} />
+          <ShimmerSkeleton width={60} height={14} borderRadius={4} />
         </View>
       </View>
     </ThemedCard>
@@ -47,16 +36,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  iconWrap: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    marginRight: 14,
-  },
-
   content: {
     flex: 1,
     gap: 6,
+    marginLeft: 14,
   },
 
   topRow: {
@@ -69,29 +52,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-  },
-
-  nameSkeleton: {
-    width: "50%",
-    height: 16,
-    borderRadius: 4,
-  },
-
-  ratingSkeleton: {
-    width: 40,
-    height: 14,
-    borderRadius: 4,
-  },
-
-  metaSkeleton: {
-    width: "40%",
-    height: 12,
-    borderRadius: 4,
-  },
-
-  priceSkeleton: {
-    width: 60,
-    height: 14,
-    borderRadius: 4,
   },
 });

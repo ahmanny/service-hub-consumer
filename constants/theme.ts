@@ -15,6 +15,7 @@ const secondaryGreen = "#13A354";   // for hover, accents, or active states
 
 export const Colors = {
   light: {
+    headerBackground: "rgb(242,242,242)",
     text: "#11181C",              // default text
     textSecondary: "#4B5563",     // subtitles, small labels
     background: "#FFFFFF",        // app background
@@ -34,6 +35,7 @@ export const Colors = {
   },
 
   dark: {
+    headerBackground: "rgb(1,1,1)",
     text: "#ECEDEE",               // default text
     textSecondary: "#9BA1A6",      // subtitles, secondary
     background: "#151718",         // app background

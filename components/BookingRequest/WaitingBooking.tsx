@@ -1,7 +1,8 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
-import { ThemedText } from "../themed-text";
+import { ThemedText } from "../ui/Themed";
 
 type Props = {
   bookingId?: string;
@@ -19,7 +20,7 @@ export function WaitingBooking({
   return (
     <View style={styles.container}>
       <View style={styles.iconWrap}>
-        <Ionicons name="time-outline" size={26} color={muted} />
+        <Ionicons name="time-outline" size={45} color={muted} />
       </View>
 
       <ThemedText type="defaultSemiBold" style={styles.title}>
@@ -33,8 +34,8 @@ export function WaitingBooking({
       <Pressable
         style={styles.viewBtn}
         onPress={() => {
-          //   onClose();
-          //   router.push(`/bookings/${bookingId}`);
+          onClose?.();
+          router.push(`/bookings/${bookingId}`);
         }}
       >
         <ThemedText type="defaultSemiBold">View</ThemedText>
@@ -45,7 +46,7 @@ export function WaitingBooking({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
+    padding: 12,
     alignItems: "center",
     gap: 10,
   },

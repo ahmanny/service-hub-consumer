@@ -1,95 +1,74 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput } from "react-native";
-import CountryPicker, {
-  Country,
-  CountryCode,
-} from "react-native-country-picker-modal";
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import PhoneInput, { ICountry } from "react-native-international-phone-number";
 
 type PhoneInputProps = {
-  phone: string;
-  setPhone: (text: string) => void;
-  callingCode: string;
-  setCallingCode: (text: string) => void;
+  defaultphone: string;
+  setLocalInputValue: React.Dispatch<React.SetStateAction<string>>;
+  localInputValue: string;
+  setSelectedCountry: React.Dispatch<
+    React.SetStateAction<ICountry | undefined>
+  >;
+  selectedCountry: ICountry | undefined;
 };
 
-export default function PhoneInput({
-    callingCode,
-    phone,
-    setCallingCode,
-    setPhone,
-}:PhoneInputProps) {
-  const [countryCode, setCountryCode] = useState<CountryCode>("NG"); // default to Nigeria
+export default function ModernPhoneInput({
+  defaultphone,
+  localInputValue,
+  selectedCountry,
+  setLocalInputValue,
+  setSelectedCountry,
+}: PhoneInputProps) {
+  function handleInputChange(phoneNumber: string) {
+    setLocalInputValue(phoneNumber);
+  }
 
-  const onSelect = (country: Country) => {
-    setCountryCode(country.cca2);
-    setCallingCode(country.callingCode[0]);
-  };
+  function handleSelectedCountry(country: ICountry) {
+    setSelectedCountry(country);
+  }
 
   const textColor = useThemeColor({}, "text");
   const border = useThemeColor({}, "border");
   const background = useThemeColor({}, "card");
-  const placeholderColor = useThemeColor({}, "placeholder");
-  const styles = createStyles({ textColor, background, border });
 
   return (
     <View style={styles.container}>
-      <View style={styles.inputWrapper}>
-        <CountryPicker
-          countryCode={countryCode}
-          withFilter
-          withFlag
-          withCallingCode
-          withEmoji
-          onSelect={onSelect}
-        />
-        <Text style={styles.codeText}>+{callingCode}</Text>
-        <TextInput
-          style={styles.phoneInput}
-          placeholderTextColor={placeholderColor}
-          placeholder="Phone number"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
-        />
-      </View>
+      <PhoneInput
+        defaultValue={defaultphone}
+        value={localInputValue}
+        onChangePhoneNumber={handleInputChange}
+        selectedCountry={selectedCountry}
+        onChangeSelectedCountry={handleSelectedCountry}
+        defaultCountry="NG"
+        placeholder="Phone number"
+        theme={useThemeColor({}, "background") === "dark" ? "dark" : "light"}
+        phoneInputStyles={{
+          container: {
+            backgroundColor: background,
+            borderColor: border,
+            borderRadius: 16,
+            height: 56,
+          },
+          flagContainer: {
+            backgroundColor: "transparent",
+            marginRight: -20,
+          },
+          callingCode: {
+            color: textColor,
+          },
+          input: {
+            color: textColor,
+          },
+        }}
+      />
     </View>
   );
 }
 
-function createStyles({
-  textColor,
-  background,
-  border,
-}: {
-  textColor: string;
-  border: string;
-  background: string;
-}) {
-  return StyleSheet.create({
-    container: {
-      marginVertical: 10,
-    },
-    inputWrapper: {
-      flexDirection: "row",
-      alignItems: "center",
-      borderWidth: 1,
-      height: 56,
-      borderColor: border,
-      backgroundColor: background,
-      borderRadius: 16,
-      paddingHorizontal: 10,
-    },
-    codeText: {
-      marginRight: 8,
-      fontSize: 16,
-      color: textColor,
-    },
-    phoneInput: {
-      flex: 1,
-      fontSize: 16,
-      color: textColor,
-      fontFamily: "Inter_500Medium",
-    },
-  });
-}
+const styles = StyleSheet.create({
+  container: {
+    marginVertical: 10,
+    width: "100%",
+  },
+});

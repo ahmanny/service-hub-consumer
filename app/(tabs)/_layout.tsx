@@ -48,7 +48,25 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen
-          name="Profile"
+          name="search"
+          options={{
+            title: "Search",
+            tabBarIcon: ({ color }) => (
+              <IconSymbol size={28} name="magnifyingglass" color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="bookings"
+          options={{
+            title: "Bookings",
+            tabBarIcon: ({ color }) => (
+              <IconSymbol size={28} name="calendar" color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
           options={{
             title: "Profile",
             tabBarIcon: ({ color }) => (

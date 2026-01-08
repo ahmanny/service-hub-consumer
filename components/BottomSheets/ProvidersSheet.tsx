@@ -77,6 +77,9 @@ export default function ProvidersSheet() {
       }}
     >
       <BottomSheetView style={{ flex: 1, padding: 16, gap: 12 }}>
+        <>
+        
+        </>
         {selectedService && (
           <Text
             style={{

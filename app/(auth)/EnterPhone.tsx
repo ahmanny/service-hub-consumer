@@ -1,5 +1,5 @@
 import AuthScreenLayout from "@/components/layouts/AuthScreenLayout";
-import PhoneInput from "@/components/ui/PhoneInput";
+import ModernPhoneInput from "@/components/ui/PhoneInput";
 import { ThemedButton, ThemedText, ThemedView } from "@/components/ui/Themed";
 import { spacing } from "@/constants/Layout";
 import { useSendOtp } from "@/hooks/auth/useAuths";
@@ -13,16 +13,25 @@ import {
   ToastAndroid,
   Vibration,
 } from "react-native";
+import {
+  ICountry,
+  isValidPhoneNumber,
+} from "react-native-international-phone-number";
 
 export default function EnterPhone() {
   const router = useRouter();
   const { mutateAsync, isPending } = useSendOtp();
 
-  const [phone, setPhone] = useState("");
-  const [callingCode, setCallingCode] = useState("234");
+  const [selectedCountry, setSelectedCountry] = useState<ICountry | undefined>(
+    undefined
+  );
+  // Internal state to track just the digits typed by user for the input field
+  const [localInputValue, setLocalInputValue] = useState("");
 
   const handleContinue = async () => {
-    if (!phone.trim()) {
+    if (selectedCountry === undefined) return;
+
+    if (!isValidPhoneNumber(localInputValue, selectedCountry)) {
       Vibration.vibrate(50);
       if (Platform.OS === "android") {
         ToastAndroid.show("Please enter your phone number", ToastAndroid.SHORT);
@@ -32,9 +41,17 @@ export default function EnterPhone() {
       return;
     }
 
+    const root = selectedCountry.idd?.root ?? "";
+    const suffix = selectedCountry.idd?.suffixes?.[0] ?? "";
+    const callingCode = `${root}${suffix}`;
+
+    // USE 'phoneNumber' HERE, NOT 'localInputValue'
+    const cleanNumber = localInputValue.replace(/[^0-9]/g, "");
+    const phoneNumber = `${callingCode}${cleanNumber}`;
+
     try {
       const res = await mutateAsync({
-        phone: callingCode + phone,
+        phone: phoneNumber,
       });
 
       Vibration.vibrate(50);
@@ -46,7 +63,8 @@ export default function EnterPhone() {
       }
 
       // Navigate with router
-      router.push(`/(auth)/VerifyOTP?phone=${callingCode + phone}`);
+      console.log(phoneNumber);
+      router.push(`/(auth)/VerifyOTP?phone=${encodeURIComponent(phoneNumber)}`);
     } catch (error) {
       const err = error as ApiError;
       const code = err.response?.data?.code ?? err.code;
@@ -55,8 +73,10 @@ export default function EnterPhone() {
         err.response?.data?.message ?? err.message ?? "Failed to send code";
 
       if (code === 113) {
-        // OTP already sent → still continue
-        router.push(`/(auth)/VerifyOTP?phone=${callingCode + phone}`);
+        // OTP already sent still continue
+        router.push(
+          `/(auth)/VerifyOTP?phone=${encodeURIComponent(phoneNumber)}`
+        );
         return;
       }
 
@@ -81,17 +101,22 @@ export default function EnterPhone() {
           We’ll send you a verification code via SMS.
         </ThemedText>
 
-        <PhoneInput
-          callingCode={callingCode}
-          phone={phone}
-          setCallingCode={setCallingCode}
-          setPhone={setPhone}
+        <ModernPhoneInput
+          localInputValue={localInputValue}
+          selectedCountry={selectedCountry}
+          setLocalInputValue={setLocalInputValue}
+          setSelectedCountry={setSelectedCountry}
+          defaultphone={""}
         />
         <ThemedButton
           title="Continue"
           loading={isPending}
           onPress={handleContinue}
-          disabled={isPending || !phone.trim()}
+          disabled={
+            isPending ||
+            !selectedCountry ||
+            !isValidPhoneNumber(localInputValue, selectedCountry)
+          }
           style={styles.button}
         />
       </ThemedView>

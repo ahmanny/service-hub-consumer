@@ -5,16 +5,22 @@ type ModalProps = {
   visible: boolean;
   onClose?: () => void;
   children: React.ReactNode;
+  animationType?: "none" | "fade" | "slide" | undefined;
 };
 
-export function ThemedModal({ visible, onClose, children }: ModalProps) {
+export function ThemedModal({
+  visible,
+  onClose,
+  children,
+  animationType = "fade",
+}: ModalProps) {
   const background = useThemeColor({}, "background");
 
   return (
     <RNModal
       transparent
       visible={visible}
-      animationType="fade"
+      animationType={animationType}
       onRequestClose={onClose} // Android back button
     >
       <Pressable

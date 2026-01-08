@@ -1,18 +1,17 @@
 import { getServicesForType, SERVICE_META } from "@/constants/services";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { formatNumber } from "@/lib/utils";
-import { BookingSetupInfo, ProviderWithServices } from "@/types/provider.types";
+import { BookingSetupInfo, ProviderSearchResult } from "@/types/provider.types";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
-import { ThemedText } from "../themed-text";
-import { ThemedView } from "../themed-view";
+import { ThemedText, ThemedView } from "../ui/Themed";
 
 export function BookingCard({
   provider,
   bookingSetup,
 }: {
-  provider: ProviderWithServices;
+  provider: ProviderSearchResult;
   bookingSetup: BookingSetupInfo | null;
 }) {
   const fallbackImage = require("../../assets/images/fallback-profile.png");
