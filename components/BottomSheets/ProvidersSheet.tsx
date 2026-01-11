@@ -1,6 +1,6 @@
 import { SERVICE_META } from "@/constants/services";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { useSearchProviders } from "@/hooks/useSearchProviders";
+import { useSearchProviders } from "@/hooks/useProviders";
 import { useService } from "@/providers/service.provider";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import React, { useEffect, useRef } from "react";
@@ -74,9 +74,7 @@ export default function ProvidersSheet() {
       }}
     >
       <BottomSheetView style={{ flex: 1, padding: 16, gap: 12 }}>
-        <>
-        
-        </>
+        <></>
         {selectedService && (
           <Text
             style={{

@@ -1,71 +1,103 @@
-import { Stack } from "expo-router";
+import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
-// Import components
+// Components
 import AvailabilityInfo from "@/components/provider-detail/AvailabilityInfo";
 import DetailHeader from "@/components/provider-detail/DetailHeader";
+import ProviderBio from "@/components/provider-detail/ProviderBio";
 import ServiceModeInfo from "@/components/provider-detail/ServiceModeInfo";
 import ServiceSelector from "@/components/provider-detail/ServiceSelector";
 import StickyBookingBar from "@/components/provider-detail/StickyBookingBar";
-import { MOCK_PROVIDER_PROFILE } from "@/data/testDatas";
+import TrustBadges from "@/components/provider-detail/TrustBadges";
+import { ThemedView } from "@/components/ui/Themed";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { IProviderProfile } from "@/types/provider.types";
+import { RefreshControl } from "react-native-gesture-handler";
 
-export default function ProviderDetailsScreen() {
-  const [selectedServiceId, setSelectedServiceId] = useState("1");
+export default function ProviderDetailsScreen({
+  data,
+  isRefetching,
+  onRefresh,
+}: {
+  data: IProviderProfile;
+  isRefetching: boolean;
+  onRefresh: () => void;
+}) {
+  const divider = useThemeColor({}, "border");
+  const tint = useThemeColor({}, "tint");
 
-  // Dynamic price calculation based on selection
-  const prices: Record<string, number> = { "1": 2500, "2": 1500, "3": 4000 };
+  const [selectedServiceValue, setSelectedServiceValue] = useState(
+    data.services[0]?.value || ""
+  );
 
-  const handleBooking = () => {
-    // This is where you trigger your BottomSheet
-    console.log("Opening Booking Sheet for Service:", selectedServiceId);
+  const selectedService = data.services.find(
+    (s) => s.value === selectedServiceValue
+  );
+
+  const currentPrice = selectedService?.price ?? data.basePriceFrom ?? 0;
+
+  const handleServiceSelect = (value: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedServiceValue(value);
   };
 
-  const data = MOCK_PROVIDER_PROFILE;
-
+  const handleBookingTrigger = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    console.log(
+      `Booking provider ${data.firstName} for service: ${selectedService?.name} (${selectedServiceValue}) at ₦${currentPrice}`
+    );
+  };
   return (
-    <View style={styles.container}>
-      <Stack.Screen
-        options={{ headerTitle: "Provider Details", headerBackTitle: "Back" }}
-      />
-
+    <ThemedView style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollBody}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={onRefresh}
+            tintColor={tint}
+            colors={[tint]}
+          />
+        }
       >
         <DetailHeader data={data} />
-        <View style={styles.divider} />
+
+        <View style={[styles.sectionDivider, { backgroundColor: divider }]} />
 
         <ServiceSelector
-          selectedId={selectedServiceId}
-          onSelect={setSelectedServiceId}
+          services={data.services}
+          selectedId={selectedServiceValue}
+          onSelect={handleServiceSelect}
         />
-        <View style={styles.divider} />
 
-        <AvailabilityInfo />
-        <View style={styles.divider} />
+        <View style={[styles.sectionDivider, { backgroundColor: divider }]} />
 
-        <ServiceModeInfo />
+        <AvailabilityInfo availability={data.availability} />
 
-        {/* Placeholder for About and Reviews */}
-        <View style={{ height: 100 }} />
+        <View style={[styles.sectionDivider, { backgroundColor: divider }]} />
+
+        <ServiceModeInfo data={data} />
+
+        <View style={[styles.sectionDivider, { backgroundColor: divider }]} />
+
+        <ProviderBio bio="John is a professional barber with over 6 years of experience, specializing in modern and classic cuts. He is known for his punctuality and attention to detail." />
+
+        <TrustBadges />
       </ScrollView>
 
-      <StickyBookingBar
-        price={prices[selectedServiceId]}
-        onBook={handleBooking}
-      />
-    </View>
+      <StickyBookingBar price={currentPrice} onBook={handleBookingTrigger} />
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "white" },
+  container: { flex: 1 },
   scrollBody: { paddingBottom: 120 },
-  divider: {
+  sectionDivider: {
     height: 1,
-    backgroundColor: "#F0F0F0",
-    marginVertical: 15,
+    marginVertical: 10,
     marginHorizontal: 20,
   },
 });

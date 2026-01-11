@@ -1,5 +1,5 @@
 import API from "@/lib/axios";
-import { SearchProvidersParams } from "@/types/provider.types";
+import { IProviderProfile, SearchProvidersParams } from "@/types/provider.types";
 
 
 
@@ -28,8 +28,10 @@ export async function getProviders({ serviceType, lat, lng }: SearchProvidersPar
     return data;
 }
 
-export async function fetchProviderDetails({ providerId }: { providerId?: string }) {
+
+
+export async function fetchProviderDetailsForBooking({ providerId }: { providerId?: string }) {
     const { data } = await API
         .get(`consumer/providers/${providerId}`);
-    return data;
+    return data.provider as IProviderProfile;
 }

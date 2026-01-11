@@ -1,5 +1,5 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { useGetProviders } from "@/hooks/useSearchProviders";
+import { useGetProviders } from "@/hooks/useProviders";
 import { FALLBACK_LOCATION } from "@/providers/service.provider";
 import { useAuthStore } from "@/stores/auth.store";
 import {

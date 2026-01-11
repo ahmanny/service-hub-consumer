@@ -14,6 +14,8 @@ interface Props {
 export default function ServiceModeInfo({ data }: Props) {
   const { shopAddress, homeServiceAvailable, serviceType } = data;
   const BRAND_GREEN = useThemeColor({}, "tint");
+  const mute = useThemeColor({}, "placeholder");
+  const red = useThemeColor({}, "danger");
 
   const shouldShowHomeRow =
     !homeBasedServices.includes(serviceType) && homeServiceAvailable;
@@ -54,12 +56,14 @@ export default function ServiceModeInfo({ data }: Props) {
       {shopAddress ? (
         <ThemedCard style={styles.addressCard}>
           <View style={styles.addressHeader}>
-            <Ionicons name="business" size={16} color="#666" />
-            <ThemedText style={styles.addressLabel}>Shop address</ThemedText>
+            <Ionicons name="business" size={16} color={mute} />
+            <ThemedText style={[styles.addressLabel, { color: mute }]}>
+              Shop address
+            </ThemedText>
           </View>
 
           <ThemedText style={styles.addressText}>
-            {shopAddress.formattedAddress}
+            {shopAddress.address}
           </ThemedText>
 
           <Pressable
@@ -70,16 +74,16 @@ export default function ServiceModeInfo({ data }: Props) {
             ]}
           >
             <Ionicons name="navigate-circle" size={20} color="#007AFF" />
-            <ThemedText style={styles.linkText}>Get directions</ThemedText>
+            <ThemedText type="link">Get directions</ThemedText>
           </Pressable>
         </ThemedCard>
       ) : (
-        <View style={styles.noShopContainer}>
-          <Ionicons name="information-circle-outline" size={20} color="#666" />
-          <ThemedText style={styles.noShopText}>
+        <ThemedCard style={styles.noShopContainer}>
+          <Ionicons name="information-circle-outline" size={20} color={red} />
+          <ThemedText style={[styles.noShopText, { color: red }]}>
             This provider works exclusively at the customer's location.
           </ThemedText>
-        </View>
+        </ThemedCard>
       )}
     </View>
   );
@@ -112,7 +116,6 @@ const styles = StyleSheet.create({
   addressLabel: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#666",
     textTransform: "uppercase",
   },
   addressText: {
@@ -125,18 +128,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    borderTopWidth: 1,
-    borderTopColor: "#EEE",
-    paddingTop: 12,
   },
-  linkText: { color: "#007AFF", fontWeight: "700", fontSize: 14 },
   noShopContainer: {
     flexDirection: "row",
     gap: 8,
     alignItems: "center",
-    backgroundColor: "#F5F5F5",
     padding: 12,
     borderRadius: 8,
   },
-  noShopText: { fontSize: 14, color: "#666", flex: 1 },
+  noShopText: { fontSize: 14, flex: 1 },
 });

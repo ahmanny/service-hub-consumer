@@ -1,3 +1,4 @@
+import { useThemeColor } from "@/hooks/use-theme-color";
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../ui/Themed";
@@ -9,12 +10,14 @@ export default function TrustBadges() {
     { icon: "headset-outline", text: "Customer support guarantee" },
   ];
 
+  const tint = useThemeColor({}, "tint");
+
   return (
     <View style={styles.container}>
       <ThemedText style={styles.title}>Why book with us?</ThemedText>
       {benefits.map((b, i) => (
         <View key={i} style={styles.benefitRow}>
-          <Ionicons name={b.icon as any} size={18} color="#4CAF50" />
+          <Ionicons name={b.icon as any} size={18} color={tint} />
           <ThemedText style={styles.benefitText}>{b.text}</ThemedText>
         </View>
       ))}

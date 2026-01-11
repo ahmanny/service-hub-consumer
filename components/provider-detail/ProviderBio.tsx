@@ -1,3 +1,4 @@
+import { useThemeColor } from "@/hooks/use-theme-color";
 import React, { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { ThemedText } from "../ui/Themed";
@@ -8,6 +9,7 @@ interface Props {
 
 export default function ProviderBio({ bio }: Props) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const tint = useThemeColor({}, "tint");
 
   const isLongBio = bio.length > 150;
   const displayBio = isExpanded || !isLongBio ? bio : `${bio.slice(0, 150)}...`;
@@ -23,7 +25,7 @@ export default function ProviderBio({ bio }: Props) {
           onPress={() => setIsExpanded(!isExpanded)}
           style={styles.readMoreBtn}
         >
-          <ThemedText style={styles.readMoreText}>
+          <ThemedText style={[styles.readMoreText, { color: tint }]}>
             {isExpanded ? "Show Less" : "Read More"}
           </ThemedText>
         </Pressable>
@@ -46,14 +48,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     opacity: 0.7,
-    color: "#333",
   },
   readMoreBtn: {
     marginTop: 6,
   },
   readMoreText: {
-    color: "#007AFF",
-    fontWeight: "600",
+    fontWeight: "800",
     fontSize: 14,
   },
 });

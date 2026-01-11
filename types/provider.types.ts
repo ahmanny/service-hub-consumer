@@ -14,7 +14,7 @@ export interface IProviderService {
 }
 
 export interface IProviderShopAddress {
-  formattedAddress: string;
+  address: string;
   city?: string;
   state?: string;
   location: {
