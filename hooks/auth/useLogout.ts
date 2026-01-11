@@ -1,7 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
 import { logout } from "@/services/auth.service";
-import { clearTokens } from "@/stores/auth.tokens";
 import { useAuthStore } from "@/stores/auth.store";
+import { clearTokens } from "@/stores/auth.tokens";
+import { useMutation } from "@tanstack/react-query";
 
 export const useLogout = () => {
     const logUserOut = useAuthStore((state) => state.logout);
@@ -12,5 +12,9 @@ export const useLogout = () => {
             await clearTokens()
             logUserOut();
         },
+        onError: async () => {
+            await clearTokens()
+            logUserOut();
+        }
     });
 };

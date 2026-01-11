@@ -7,6 +7,9 @@ export type ServiceType =
     | "plumber"
     | "house_cleaning";
 
+export const homeBasedServices = ["plumber", "electrician", "house_cleaning"];
+
+
 export type ServiceMeta = {
     label: string;
     description: string;
@@ -14,10 +17,10 @@ export type ServiceMeta = {
 };
 
 export const SERVICE_META: Record<ServiceType, ServiceMeta> = {
-    plumber: {
-        label: "Plumber",
-        description: "Pipes, leaks, installations",
-        icon: "wrench",
+    barber: {
+        label: "Barber",
+        description: "Haircuts and grooming",
+        icon: "scissors",
     },
     electrician: {
         label: "Electrician",
@@ -29,15 +32,15 @@ export const SERVICE_META: Record<ServiceType, ServiceMeta> = {
         description: "Home and office cleaning",
         icon: "broom",
     },
-    barber: {
-        label: "Barber",
-        description: "Haircuts and grooming",
-        icon: "scissors",
-    },
     hair_stylist: {
         label: "Hair Stylist",
         description: "Styling, braids, treatments",
         icon: "user",
+    },
+    plumber: {
+        label: "Plumber",
+        description: "Pipes, leaks, installations",
+        icon: "wrench",
     },
 };
 

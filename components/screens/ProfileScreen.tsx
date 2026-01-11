@@ -1,5 +1,6 @@
 import { ThemedText } from "@/components/ui/Themed";
 import { useLogout } from "@/hooks/auth/useLogout";
+import { useAddressActions } from "@/hooks/consumer/useAddressActions";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useAuthStore } from "@/stores/auth.store";
 import { Ionicons } from "@expo/vector-icons";
@@ -86,6 +87,20 @@ export default function ProfileScreen() {
     });
   };
 
+  const { deleteAddress, isDeleting } = useAddressActions();
+  const handleDelete = async () => {
+    if (!selectedAddress?._id) return;
+
+    try {
+      await deleteAddress(selectedAddress._id);
+      bottomSheetRef.current?.dismiss();
+      // Reset selection after successful delete
+      setSelectedAddress(null);
+    } catch (error) {
+      console.error("Failed to delete address:", error);
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={["top"]}>
       <ScrollView
@@ -96,7 +111,7 @@ export default function ProfileScreen() {
         <View style={styles.header}>
           <AppAvatar
             shape="square"
-            uri={profile.avatarUrl}
+            source={{ uri: profile.avatarUrl }}
             initials={`${profile.firstName[0]}${profile.lastName[0]}`}
             onEdit={() => {}}
           />
@@ -209,10 +224,8 @@ export default function ProfileScreen() {
                 label={selectedAddress.label}
                 address={selectedAddress.formattedAddress}
                 onEdit={handleEditAddress}
-                onDelete={() => {
-                  console.log("Delete:", selectedAddress._id);
-                  bottomSheetRef.current?.dismiss();
-                }}
+                onDelete={handleDelete}
+                isDeleting={isDeleting}
               />
             )}
           </MenuGroup>
@@ -278,7 +291,7 @@ export default function ProfileScreen() {
   );
 }
 
-// --- Internal Helper Components ---
+// Internal Helper Components
 
 const MenuGroup = ({ title, children }: any) => (
   <View style={styles.menuGroup}>
@@ -289,24 +302,31 @@ const MenuGroup = ({ title, children }: any) => (
 
 const MenuItem = ({ icon, label, subtitle, value, onPress }: any) => {
   const muted = useThemeColor({}, "placeholder");
+
   return (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
       <View style={styles.menuLeft}>
         <Ionicons name={icon} size={22} color={muted} />
-        <View style={{ marginLeft: 14 }}>
-          <ThemedText style={[styles.menuLabel, subtitle && { marginLeft: 0 }]}>
+        <View style={{ marginLeft: 14, flex: 1, paddingRight: 8 }}>
+          <ThemedText
+            style={[styles.menuLabel, subtitle && { marginLeft: 0 }]}
+            numberOfLines={1}
+          >
             {label}
           </ThemedText>
+
           {subtitle && (
             <ThemedText
               style={{ fontSize: 13, opacity: 0.5, marginTop: 2 }}
               numberOfLines={1}
+              ellipsizeMode="tail"
             >
               {subtitle}
             </ThemedText>
           )}
         </View>
       </View>
+
       <View style={styles.menuRight}>
         {value && <ThemedText style={styles.menuValue}>{value}</ThemedText>}
         <Ionicons name="chevron-forward" size={18} color="#D1D5DB" />
@@ -315,7 +335,7 @@ const MenuItem = ({ icon, label, subtitle, value, onPress }: any) => {
   );
 };
 
-// --- Styles ---
+// Styles
 
 const styles = StyleSheet.create({
   header: {

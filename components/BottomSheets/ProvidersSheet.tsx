@@ -31,9 +31,6 @@ export default function ProvidersSheet() {
       serviceType: selectedService || "barber",
       lat: userLocation[1],
       lng: userLocation[0],
-      bookingDateTime: bookingSetup?.bookingDateTime || "",
-      locationType: bookingSetup?.locationType || null,
-      service: bookingSetup?.service || "",
     },
     activeSheet === "providers" &&
       selectedService !== undefined &&

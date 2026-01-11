@@ -18,6 +18,7 @@ export async function addAddress(payload: UserAddressPayload) {
     return data;
 }
 export async function updateAddress(addressId: string, payload: Partial<UserAddressPayload>) {
+    console.log("payload",payload)
     const { data } = await API.patch(`/consumer/address/${addressId}`, payload);
     return data;
 }

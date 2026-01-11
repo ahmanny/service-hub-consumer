@@ -21,7 +21,7 @@ export default function PersonalInfoScreen() {
         <View style={styles.avatarSection}>
           <AppAvatar
             shape="square"
-            uri={profile.avatarUrl}
+            source={{ uri: profile.avatarUrl }}
             initials={`${profile.firstName[0]}${profile.lastName[0]}`}
             onEdit={() => {}}
           />

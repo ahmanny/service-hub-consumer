@@ -1,5 +1,4 @@
 import HomeScreen from "@/components/screens/HomeScreen";
-import { MOCK_HOME_DATA } from "@/data/testDatas";
 import Mapbox from "@rnmapbox/maps";
 import React from "react";
 
@@ -9,5 +8,5 @@ const accessToken =
 Mapbox.setAccessToken(accessToken);
 
 export default function Home() {
-  return <HomeScreen data={MOCK_HOME_DATA} />;
+  return <HomeScreen />;
 }

@@ -33,12 +33,15 @@ export default function SetLocationPage() {
   const defaultLng = 3.3792;
 
   const handleLocationSelected = async (data: any) => {
+    console.log("Data", data);
     try {
       if (params.addressId) {
         await updateAddress({
-          id: params.addressId,
-          ...data,
-          label: params.label || data.label,
+          id: params.addressId as string,
+          payload: {
+            ...data,
+            label: params.label || data.label,
+          },
         });
       } else {
         await addAddress(data);
@@ -83,6 +86,8 @@ export default function SetLocationPage() {
       }
       onConfirm={handleLocationSelected}
       isPending={isAdding || isUpdating}
+      isEdit={isEditMode}
+      label={params.label}
     />
   );
 }

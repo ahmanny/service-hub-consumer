@@ -41,7 +41,7 @@ type ServiceContextType = {
   >;
 };
 
-const FALLBACK_LOCATION: [number, number] = [3.3792, 6.5244];
+export const FALLBACK_LOCATION: [number, number] = [3.3792, 6.5244];
 
 const ServiceContext = createContext({} as ServiceContextType);
 

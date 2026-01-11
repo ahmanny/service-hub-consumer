@@ -97,13 +97,11 @@ export default function SetLocationModalScreen({
               <ThemedText style={{ color: tint }}>Cancel</ThemedText>
             </TouchableOpacity>
           ),
-          headerRight: () => {
-            <ThemedText type="subtitle">
-              {isEdit
-                ? `Edit ${label || "Address"}`
-                : `Set ${label || "Address"}`}
-            </ThemedText>;
-          },
+          headerRight: () => (
+            <ThemedText type="defaultSemiBold">
+              {isEdit ? `Editing ${label} Address` : `Setting ${label} Address`}
+            </ThemedText>
+          ),
         }}
       />
       <KeyboardAvoidingView
@@ -156,7 +154,15 @@ export default function SetLocationModalScreen({
           </View>
 
           {/* MAPBOX */}
-          <Mapbox.MapView style={{ flex: 1 }} logoEnabled={true}>
+          <Mapbox.MapView
+            style={{ flex: 1 }}
+            logoEnabled={true}
+            onPress={(feature: any) => {
+              const [newLng, newLat] = feature.geometry.coordinates;
+              setLat(newLat);
+              setLng(newLng);
+            }}
+          >
             <Mapbox.Camera
               centerCoordinate={[lng, lat]}
               zoomLevel={15}

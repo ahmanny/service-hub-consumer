@@ -8,17 +8,19 @@ import {
 } from "@gorhom/bottom-sheet";
 import React, { forwardRef, useMemo } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator } from "react-native-paper";
 import { ThemedText } from "../ui/Themed";
 
 type Props = {
-  label: string; // e.g., "Home"
-  address: string; // e.g., "123 Ahmanny St, Lagos"
+  label: string;
+  address: string;
   onEdit: () => void;
   onDelete: () => void;
+  isDeleting?: boolean;
 };
 
 export const AddressOptionsSheet = forwardRef<BottomSheetModal, Props>(
-  ({ label, address, onEdit, onDelete }, ref) => {
+  ({ label, address, onEdit, onDelete, isDeleting }, ref) => {
     const bg = useThemeColor({}, "card");
     const textColor = useThemeColor({}, "text");
     const errorColor = useThemeColor({}, "danger");
@@ -72,7 +74,11 @@ export const AddressOptionsSheet = forwardRef<BottomSheetModal, Props>(
 
           {/* Actions */}
           <View style={styles.optionsContainer}>
-            <TouchableOpacity style={styles.option} onPress={onEdit}>
+            <TouchableOpacity
+              style={styles.option}
+              onPress={onEdit}
+              disabled={isDeleting}
+            >
               <View
                 style={[
                   styles.iconWrapper,
@@ -84,17 +90,25 @@ export const AddressOptionsSheet = forwardRef<BottomSheetModal, Props>(
               <ThemedText style={styles.optionText}>Edit Address</ThemedText>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.option} onPress={onDelete}>
+            <TouchableOpacity
+              style={styles.option}
+              onPress={onDelete}
+              disabled={isDeleting}
+            >
               <View
                 style={[
                   styles.iconWrapper,
                   { backgroundColor: iconBackground },
                 ]}
               >
-                <Ionicons name="trash-outline" size={20} color={errorColor} />
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color={errorColor} />
+                ) : (
+                  <Ionicons name="trash-outline" size={20} color={errorColor} />
+                )}
               </View>
               <ThemedText style={[styles.optionText, { color: errorColor }]}>
-                Delete Address
+                {isDeleting ? "Deleting..." : "Delete Address"}
               </ThemedText>
             </TouchableOpacity>
           </View>
