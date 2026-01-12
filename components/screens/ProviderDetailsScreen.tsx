@@ -1,6 +1,12 @@
 import * as Haptics from "expo-haptics";
-import React, { useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import React, { useRef, useState } from "react";
+import {
+  Platform,
+  ScrollView,
+  StyleSheet,
+  ToastAndroid,
+  View,
+} from "react-native";
 
 // Components
 import AvailabilityInfo from "@/components/provider-detail/AvailabilityInfo";
@@ -11,9 +17,15 @@ import ServiceSelector from "@/components/provider-detail/ServiceSelector";
 import StickyBookingBar from "@/components/provider-detail/StickyBookingBar";
 import TrustBadges from "@/components/provider-detail/TrustBadges";
 import { ThemedView } from "@/components/ui/Themed";
+import { useSendBookingRequest } from "@/hooks/consumer/useBooking";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { ApiError } from "@/types/api.error.types";
 import { IProviderProfile } from "@/types/provider.types";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { router } from "expo-router";
+import { Alert } from "react-native";
 import { RefreshControl } from "react-native-gesture-handler";
+import { BookingBottomSheet } from "../BottomSheets/BookingBottomSheet";
 
 export default function ProviderDetailsScreen({
   data,
@@ -24,6 +36,9 @@ export default function ProviderDetailsScreen({
   isRefetching: boolean;
   onRefresh: () => void;
 }) {
+  const { mutateAsync: sendBooking, isPending } = useSendBookingRequest();
+  const sheetRef = useRef<BottomSheetModal>(null);
+
   const divider = useThemeColor({}, "border");
   const tint = useThemeColor({}, "tint");
 
@@ -43,7 +58,8 @@ export default function ProviderDetailsScreen({
   };
 
   const handleBookingTrigger = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    sheetRef.current?.present();
     console.log(
       `Booking provider ${data.firstName} for service: ${selectedService?.name} (${selectedServiceValue}) at ₦${currentPrice}`
     );
@@ -86,6 +102,52 @@ export default function ProviderDetailsScreen({
 
         <TrustBadges />
       </ScrollView>
+
+      {selectedService && (
+        <BookingBottomSheet
+          ref={sheetRef}
+          provider={data}
+          selectedService={selectedService}
+          isBooking={isPending}
+          onConfirm={async (details) => {
+            try {
+              const response = await sendBooking(details);
+              console.log(response.bookingId);
+              console.log(response.status);
+              console.log("Booking request response:", response);
+              Haptics.notificationAsync(
+                Haptics.NotificationFeedbackType.Success
+              );
+
+              sheetRef.current?.dismiss();
+              setTimeout(() => {
+                router.replace({
+                  pathname: "/(tabs)/bookings/[bookingId]",
+                  params: {
+                    bookingId: response.bookingId,
+                    status: "pending",
+                    newBooking: "true",
+                  },
+                });
+              }, 100);
+            } catch (error) {
+              const err = error as ApiError;
+              const message =
+                err.response?.data?.message ??
+                err.message ??
+                "Failed to send booking";
+
+              console.error("Booking request error:", err);
+
+              if (Platform.OS === "android") {
+                ToastAndroid.show(message, ToastAndroid.LONG);
+              } else {
+                Alert.alert("Error", message);
+              }
+            }
+          }}
+        />
+      )}
 
       <StickyBookingBar price={currentPrice} onBook={handleBookingTrigger} />
     </ThemedView>

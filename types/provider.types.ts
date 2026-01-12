@@ -6,6 +6,10 @@ export interface IAvailabilityDay {
   slots: { start: string; end: string }[]; // "09:00" to "17:00"
   isClosed: boolean;
 }
+export interface IBookedSlot {
+  date: string; // "YYYY-MM-DD"
+  startTime: string; // 14:00
+}
 
 export interface IProviderService {
   name: string;
@@ -40,11 +44,12 @@ export interface IProviderProfile {
   rating: number;
   isVerified: boolean;
   shopAddress?: IProviderShopAddress;
-  availability: IAvailabilityDay[]; // Added this field
+  availability: IAvailabilityDay[];
+  bookedSlots?: IBookedSlot[];
 
   yearsOfExperience?: number;
   reviewCount?: number;
-  distance?: number; // Calculated by GeoSpatial query on backend
+  distance?: number;
 }
 export interface ProviderListItem {
   _id: string;

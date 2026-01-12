@@ -1,33 +1,50 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { generateTimeSlots } from "@/lib/utils";
 import React, { useMemo } from "react";
 import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../ui/Themed";
 
 const { width } = Dimensions.get("window");
 const PICKER_SIZE = width * 0.8;
-const RADIUS = PICKER_SIZE / 2.5;
+const RADIUS = PICKER_SIZE / 2.6;
+
+interface Props {
+  selectedDate: Date | null;
+  selectedTime: Date | null;
+  onSelectTime: (date: Date) => void;
+  disabledHours: number[];
+  startHour: number;
+  endHour: number;
+}
 
 export default function RadialTimePicker({
   selectedDate,
   selectedTime,
   onSelectTime,
-}: any) {
+  disabledHours,
+  startHour,
+  endHour,
+}: Props) {
   const tint = useThemeColor({}, "tint");
   const cardBg = useThemeColor({}, "card");
   const border = useThemeColor({}, "border");
 
-  // Filter 12 main slots (e.g., every hour from 9 AM to 8 PM)
   const slots = useMemo(() => {
-    const all = generateTimeSlots(selectedDate);
-    // Filtering for hours only to keep the circle clean
-    return all.filter((d: any) => d.getMinutes() === 0);
-  }, [selectedDate]);
+    const hours = [];
+    // Use selectedDate if available, otherwise fallback to today
+    const baseDate = selectedDate ? new Date(selectedDate) : new Date();
+
+    // Loop from startHour to endHour (inclusive)
+    for (let h = startHour; h <= endHour; h++) {
+      const slot = new Date(baseDate);
+      slot.setHours(h, 0, 0, 0);
+      hours.push(slot);
+    }
+    return hours;
+  }, [selectedDate, startHour, endHour]); // Ensure these are watched!
 
   return (
     <View style={styles.container}>
       <View style={[styles.clockFace, { borderColor: border }]}>
-        {/* CENTER DISPLAY */}
         <View style={styles.centerInfo}>
           <ThemedText style={styles.centerLabel}>Selected</ThemedText>
           <ThemedText
@@ -43,36 +60,46 @@ export default function RadialTimePicker({
           </ThemedText>
         </View>
 
-        {/* RADIAL SLOTS */}
-        {slots.map((slot: any, index: any) => {
+        {slots.map((slot, index) => {
+          const hour = slot.getHours();
+          const isDisabled = disabledHours.includes(hour);
+          const isSelected = selectedTime?.getHours() === hour;
+
+          // Spread slots evenly around the circle
+          // If we have many slots, they might overlap;
+          // we use the actual count of 'slots' to determine spacing
           const angle = (index / slots.length) * 2 * Math.PI - Math.PI / 2;
           const x = RADIUS * Math.cos(angle);
           const y = RADIUS * Math.sin(angle);
 
-          const isSelected = selectedTime?.getHours() === slot.getHours();
-
           return (
             <TouchableOpacity
-              key={index}
+              key={`${hour}-${index}`}
+              disabled={isDisabled}
               onPress={() => onSelectTime(slot)}
               style={[
                 styles.slot,
                 {
                   transform: [{ translateX: x }, { translateY: y }],
-                  backgroundColor: isSelected ? tint : cardBg,
+                  backgroundColor: isSelected
+                    ? tint
+                    : isDisabled
+                    ? "transparent"
+                    : cardBg,
                   borderColor: isSelected ? tint : border,
+                  opacity: isDisabled ? 0.2 : 1,
                 },
               ]}
             >
               <ThemedText
                 style={[styles.slotText, isSelected && { color: "#fff" }]}
               >
-                {slot.getHours() > 12 ? slot.getHours() - 12 : slot.getHours()}
+                {hour > 12 ? hour - 12 : hour === 0 ? 12 : hour}
               </ThemedText>
               <ThemedText
                 style={[styles.period, isSelected && { color: "#fff" }]}
               >
-                {slot.getHours() >= 12 ? "PM" : "AM"}
+                {hour >= 12 ? "PM" : "AM"}
               </ThemedText>
             </TouchableOpacity>
           );
@@ -82,11 +109,12 @@ export default function RadialTimePicker({
   );
 }
 
+// ... styles remain the same
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     justifyContent: "center",
-    marginVertical: 20,
+    marginVertical: 30,
   },
   clockFace: {
     width: PICKER_SIZE,
@@ -97,29 +125,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  centerInfo: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  centerLabel: {
-    fontSize: 12,
-    opacity: 0.5,
-    textTransform: "uppercase",
-  },
+  centerInfo: { alignItems: "center" },
+  centerLabel: { fontSize: 10, opacity: 0.5, textTransform: "uppercase" },
   slot: {
     position: "absolute",
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
   },
-  slotText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  period: {
-    fontSize: 8,
-    fontWeight: "700",
-  },
+  slotText: { fontSize: 13, fontWeight: "800" },
+  period: { fontSize: 7, fontWeight: "bold" },
 });

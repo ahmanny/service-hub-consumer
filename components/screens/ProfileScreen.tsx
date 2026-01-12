@@ -65,7 +65,7 @@ export default function ProfileScreen() {
   const { mutateAsync, isPending } = useLogout();
 
   const handleAddressPress = (address: any) => {
-    setSelectedAddress(address);
+    setSelectedAddress(address)
     setTimeout(() => {
       bottomSheetRef.current?.present();
     }, 100);

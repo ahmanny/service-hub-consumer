@@ -11,7 +11,7 @@ export default function BookingLayout() {
       screenOptions={{
         headerShown: true,
         headerStyle: { backgroundColor: headerBackground },
-        headerTitleStyle: { fontWeight: "700", fontSize: 27 },
+        headerTitleStyle: { fontWeight: "600", fontSize: 20 },
         headerTintColor: textColor,
         headerShadowVisible: false,
       }}
@@ -25,10 +25,10 @@ export default function BookingLayout() {
       />
       {/* [id] represents bookings/[id].tsx */}
       <Stack.Screen
-        name="[id]"
+        name="[bookingId]"
         options={{
-          title: "",
-          headerBackTitle: "Back", // Good for iOS
+          title: "Booking Details",
+          headerBackTitle: "Back",
         }}
       />
     </Stack>

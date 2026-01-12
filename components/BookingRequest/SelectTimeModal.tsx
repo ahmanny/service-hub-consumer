@@ -10,6 +10,10 @@ interface Props {
   showModal: boolean;
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
   selectedDate: Date | null;
+  // Add this to handle the custom logic
+  disabledHours: number[]; // e.g., [10, 15, 18]
+  startHour: number; // e.g., 9
+  endHour: number; // e.g., 20 (8 PM)
 }
 
 export default function SelectTimeModal({
@@ -18,6 +22,9 @@ export default function SelectTimeModal({
   setSelectedTime,
   selectedDate,
   selectedTime,
+  disabledHours,
+  startHour,
+  endHour,
 }: Props) {
   const text = useThemeColor({}, "text");
   const muted = useThemeColor({}, "placeholder");
@@ -35,7 +42,7 @@ export default function SelectTimeModal({
       <View style={styles.header}>
         <Text style={[styles.title, { color: text }]}>Available Times</Text>
         <Text style={[styles.subtitle, { color: muted }]}>
-          Choose what time you want the service
+          8:00 AM - 9:00 PM (excluding 4PM, 6PM)
         </Text>
       </View>
 
@@ -44,6 +51,9 @@ export default function SelectTimeModal({
         selectedDate={selectedDate}
         selectedTime={selectedTime}
         onSelectTime={setSelectedTime}
+        disabledHours={disabledHours}
+        startHour={startHour}
+        endHour={endHour}
       />
 
       {/* Footer Buttons */}

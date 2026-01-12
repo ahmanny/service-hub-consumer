@@ -39,7 +39,7 @@ export const MOCK_PROVIDER_PROFILE: IProviderProfile = {
     ],
 
     shopAddress: {
-        formattedAddress: "12 Adeola Odeku St, Victoria Island, Lagos",
+        address: "12 Adeola Odeku St, Victoria Island, Lagos",
         city: "Victoria Island",
         state: "Lagos",
         location: {

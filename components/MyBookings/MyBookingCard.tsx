@@ -10,7 +10,8 @@ interface BookingCardProps {
   serviceType: ServiceType;
   serviceName: string;
   price: number;
-  dateLabel: string; // e.g Tue, 12 Mar • 2:30 PM
+  scheduledLabel: string; // The appointment time
+  createdLabel: string; // When the booking was made
   locationLabel: string; // Home service / Come to shop
   status: BookingStatus;
   onPress?: () => void;
@@ -20,7 +21,8 @@ export function MyBookingCard({
   serviceType,
   serviceName,
   price,
-  dateLabel,
+  createdLabel,
+  scheduledLabel,
   locationLabel,
   status,
   onPress,
@@ -73,41 +75,55 @@ export function MyBookingCard({
         { backgroundColor: cardBg, opacity: pressed ? 0.9 : 1 },
       ]}
     >
-      {/* Avatar */}
+      {/* Icon */}
       <View style={styles.iconContainer}>
         <FontAwesome6 name={meta.icon} size={18} color="#0BB45E" />
       </View>
 
       {/* Details */}
       <View style={styles.content}>
-        <View style={styles.bottomRow}>
-          <ThemedText style={styles.primaryText}>
+        {/* Top Row: Service & Price */}
+        <View style={styles.row}>
+          <ThemedText style={styles.primaryText} numberOfLines={1}>
             {serviceName} • ₦{formatNumber(price)}
           </ThemedText>
 
           {CAN_REBOOK.includes(status) && (
             <Pressable
-              onPress={() => console.log("Rebook pressed")}
+              // onPress={onRebook}
               style={styles.rebookButton}
             >
               <FontAwesome6
                 name="clock-rotate-left"
-                size={16}
+                size={14}
                 color="#0BB45E"
-                style={{ marginLeft: 4 }}
               />
             </Pressable>
           )}
         </View>
 
-        <ThemedText style={[styles.secondaryText, { color: muted }]}>
-          On: {dateLabel}
-        </ThemedText>
+        {/* Middle Row: Scheduled Date (The most important one) */}
+        <View style={styles.dateRow}>
+          <Ionicons
+            name="calendar-outline"
+            size={14}
+            color="#0BB45E"
+            style={{ marginRight: 4 }}
+          />
+          <ThemedText style={styles.scheduledText}>{scheduledLabel}</ThemedText>
+        </View>
 
+        {/* Bottom Row: Location & Status */}
         <View style={styles.bottomRow}>
-          <ThemedText style={[styles.locationText, { color: muted }]}>
-            {locationLabel}
-          </ThemedText>
+          <View>
+            <ThemedText style={[styles.locationText, { color: muted }]}>
+              {locationLabel}
+            </ThemedText>
+            {/* Created At - Subtle Metadata */}
+            <ThemedText style={[styles.createdText, { color: muted }]}>
+              Booked: {createdLabel}
+            </ThemedText>
+          </View>
 
           <View style={styles.rightRow}>
             <View
@@ -119,13 +135,7 @@ export function MyBookingCard({
                 {statusConfig.label}
               </ThemedText>
             </View>
-
-            <Ionicons
-              name="chevron-forward"
-              size={18}
-              color={muted}
-              style={{ marginLeft: 4 }}
-            />
+            <Ionicons name="chevron-forward" size={16} color={muted} />
           </View>
         </View>
       </View>
@@ -135,74 +145,81 @@ export function MyBookingCard({
 
 const styles = StyleSheet.create({
   card: {
-    height: 92,
-    borderRadius: 16,
+    // Increased height slightly to accommodate the extra line of text nicely
+    minHeight: 100,
+    borderRadius: 20,
     paddingVertical: 12,
     paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
+    // Add a slight shadow or border depending on your design
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.05)",
   },
-
   iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 16, // Squircle look
     marginRight: 12,
-    backgroundColor: "#E5E5E5",
+    backgroundColor: "rgba(11, 180, 94, 0.1)", // Light green tint
     alignItems: "center",
     justifyContent: "center",
   },
-
   content: {
     flex: 1,
-    justifyContent: "space-between",
+    gap: 2, // Using gap for consistent spacing
   },
-
-  primaryText: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-
-  secondaryText: {
-    fontSize: 14,
-    // marginTop: 2,
-  },
-
-  bottomRow: {
+  row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    // marginTop: 2,
   },
-
-  locationText: {
+  primaryText: {
+    fontSize: 15,
+    fontWeight: "700",
+    flex: 1,
+  },
+  dateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  scheduledText: {
     fontSize: 13,
+    fontWeight: "600",
   },
-
+  bottomRow: {
+    flexDirection: "row",
+    alignItems: "flex-end", // Align status pill to bottom of text
+    justifyContent: "space-between",
+    marginTop: 4,
+  },
+  locationText: {
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  createdText: {
+    fontSize: 10,
+    opacity: 0.7,
+  },
   rightRow: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 4,
   },
-
   statusPill: {
-    height: 22,
     paddingHorizontal: 10,
-    borderRadius: 999,
-    justifyContent: "center",
-    alignItems: "center",
+    paddingVertical: 3,
+    borderRadius: 8,
   },
-
   statusText: {
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
   },
   rebookButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 14,
-    backgroundColor: "#F2F2F2",
-    justifyContent: "center",
-    alignItems: "center",
+    padding: 8,
+    borderRadius: 10,
+    backgroundColor: "rgba(11, 180, 94, 0.05)",
   },
 });

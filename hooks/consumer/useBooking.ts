@@ -1,7 +1,7 @@
 
 
 
-import { fetchBookings, sendRequest } from "@/services/booking.service";
+import { fetchBookingDetails, fetchBookings, sendRequest } from "@/services/booking.service";
 import { BookingListItem, fetchBookingsParams } from "@/types/booking.types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -24,5 +24,15 @@ export const useFetchBookings = (params: fetchBookingsParams) => {
         queryKey: ["fetch-bookings", params],
         queryFn: () => fetchBookings(params),
         refetchOnWindowFocus: false,
+    });
+};
+
+export const useBookingDetails = ({ bookingId }: { bookingId?: string, }) => {
+    return useQuery({
+        queryKey: ["booking-details", bookingId],
+        queryFn: () => fetchBookingDetails({ bookingId: bookingId }),
+        enabled: !!bookingId,
+        refetchOnWindowFocus: false,
+        retry: 3
     });
 };

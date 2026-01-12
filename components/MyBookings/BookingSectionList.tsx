@@ -28,14 +28,13 @@ function groupBookingsByMonth(bookings: BookingListItem[]): BookingSection[] {
 
   // sort DESC (latest first)
   const sorted = [...bookings].sort(
-    (a, b) =>
-      new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime()
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   const map = new Map<string, BookingListItem[]>();
 
   sorted.forEach((booking) => {
-    const date = new Date(booking.scheduledAt);
+    const date = new Date(booking.createdAt);
     const key = `${date.getFullYear()}-${date.getMonth()}`;
 
     if (!map.has(key)) map.set(key, []);
@@ -51,7 +50,7 @@ function groupBookingsByMonth(bookings: BookingListItem[]): BookingSection[] {
       );
     })
     .map(([_, data]) => {
-      const d = new Date(data[0].scheduledAt);
+      const d = new Date(data[0].createdAt);
       return {
         title: d.toLocaleString("default", {
           month: "long",
@@ -91,7 +90,17 @@ export function BookingSectionList({
           serviceName={item.serviceName}
           serviceType={item.serviceType}
           price={item.price}
-          dateLabel={new Date(item.scheduledAt).toLocaleDateString(undefined, {
+          scheduledLabel={new Date(item.scheduledAt).toLocaleDateString(
+            undefined,
+            {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit",
+            }
+          )}
+          createdLabel={new Date(item.createdAt).toLocaleDateString(undefined, {
             weekday: "short",
             day: "numeric",
             month: "short",

@@ -6,6 +6,7 @@ import ProviderDetailsScreen from "@/components/screens/ProviderDetailsScreen";
 import ProviderDetailSkeleton from "@/components/skeletons/ProviderDetailSkeleton";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { useProviderDetails } from "@/hooks/useProviders";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 export default function ProviderDetailsPage() {
   const { providerId } = useLocalSearchParams<{ providerId: string }>();
@@ -36,13 +37,13 @@ export default function ProviderDetailsPage() {
   }
 
   return (
-    <>
+    <BottomSheetModalProvider>
       <Stack.Screen options={{ title: data.firstName }} />
       <ProviderDetailsScreen
         data={data}
         isRefetching={isRefetching}
         onRefresh={onRefresh}
       />
-    </>
+    </BottomSheetModalProvider>
   );
 }

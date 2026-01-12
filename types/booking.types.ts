@@ -11,6 +11,11 @@ export interface BookingRequestPayload {
     serviceName: string;
     scheduledAt: string;
     locationType: "shop" | "home";
+    price?: {
+        service: number
+        homeServiceFee: number | null
+        total: number
+    }
     geoAddress?: GeoAddress | null;
     textAddress?: string | null;
     note?: string | null;
@@ -29,9 +34,9 @@ type BookingBase = {
     serviceType: ServiceType;
     status: BookingStatus;
     scheduledAt: string;
-    createdAt?: string;
+    createdAt: string;
     updatedAt?: string;
-    __v?: number;
+    _v?: number;
 };
 
 

@@ -1,5 +1,5 @@
 import API from "@/lib/axios";
-import { BookingRequestPayload, fetchBookingsParams } from "@/types/booking.types";
+import { BookingDetails, BookingRequestPayload, fetchBookingsParams } from "@/types/booking.types";
 
 
 
@@ -19,3 +19,10 @@ export const fetchBookings = async ({ limit, page, status, tab }: fetchBookingsP
     console.log(data)
     return data
 };
+
+
+export async function fetchBookingDetails({ bookingId }: { bookingId?: string }) {
+    const { data } = await API
+        .get(`/booking/${bookingId}`);
+    return data as BookingDetails;
+}

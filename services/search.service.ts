@@ -32,6 +32,6 @@ export async function getProviders({ serviceType, lat, lng }: SearchProvidersPar
 
 export async function fetchProviderDetailsForBooking({ providerId }: { providerId?: string }) {
     const { data } = await API
-        .get(`consumer/providers/${providerId}`);
+        .get(`/consumer/providers/${providerId}`);
     return data.provider as IProviderProfile;
 }

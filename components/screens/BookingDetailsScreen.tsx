@@ -1,120 +1,190 @@
-import { ThemedButton, ThemedText } from "@/components/ui/Themed";
+import { ThemedText } from "@/components/ui/Themed";
 import ThemedCard from "@/components/ui/Themed/ThemedCard";
 import { SERVICE_META } from "@/constants/services"; // Assuming this exists for icons
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { BOOKING_STATUS_MAP } from "@/lib/utils/booking.utils";
 import { BookingDetails } from "@/types/booking.types"; // Path to your type
 import { FontAwesome6, Ionicons } from "@expo/vector-icons";
+import { format } from "date-fns";
 import React from "react";
 import {
   Image,
+  Linking,
+  Platform,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from "react-native";
+import BookingActionButtons from "../MyBookings/BookingActionButtons";
 
 const fallbackImage = require("../../assets/images/fallback-profile.png");
 
 interface Props {
   booking: BookingDetails;
+  isRefetching: boolean;
+  onRefresh: () => void;
 }
 
-export default function BookingDetailsScreen({ booking }: Props) {
+export default function BookingDetailsScreen({
+  booking,
+  isRefetching,
+  onRefresh,
+}: Props) {
   const tint = useThemeColor({}, "tint");
   const bg = useThemeColor({}, "background");
   const muted = useThemeColor({}, "placeholder");
   const border = useThemeColor({}, "border");
+  const cardBg = useThemeColor({}, "card");
 
-  // Date formatting logic remains the same...
-  const dateObj = new Date(booking.scheduledAt);
-  const formattedDate = dateObj.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  const formattedTime = dateObj.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  // Format dates using date-fns or native
+  const scheduledDate = new Date(booking.scheduledAt);
+  const createdDate = new Date(booking.createdAt);
 
-  const serviceIcon = SERVICE_META[booking.serviceType]?.icon || "gear";
+  const handleGetDirections = () => {
+    if (!booking?.location?.geoAddress?.coordinates) return;
+    const [lng, lat] = booking.location.geoAddress.coordinates;
+    const label = `${booking.provider.firstName}'s Shop`;
+    const latLng = `${lat},${lng}`;
+    const url = Platform.select({
+      ios: `maps:0,0?q=${label}@${latLng}`,
+      android: `geo:0,0?q=${latLng}(${label})`,
+    });
+    if (url) Linking.openURL(url);
+  };
+
+  const statusInfo = BOOKING_STATUS_MAP[booking.status];
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: bg }}
-      contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: 60 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={onRefresh}
+          tintColor={tint}
+        />
+      }
     >
-      {/* HERO SECTION */}
-      <View style={[styles.hero, { backgroundColor: tint + "15" }]}>
-        <View style={styles.heroContent}>
-          <View style={[styles.iconBox, { backgroundColor: tint }]}>
-            <FontAwesome6 name={serviceIcon} size={24} color="white" />
+      {/* PREMIUM HERO SECTION */}
+      <View style={[styles.premiumHero, { backgroundColor: tint }]}>
+        <View style={styles.heroOverlay}>
+          <View style={styles.iconCircleLarge}>
+            <FontAwesome6
+              name={SERVICE_META[booking.serviceType]?.icon || "gear"}
+              size={32}
+              color={tint}
+            />
           </View>
-          <ThemedText type="title" style={{ marginTop: 12 }}>
+          <ThemedText style={styles.heroServiceName}>
             {booking.serviceName}
           </ThemedText>
-          <ThemedText style={{ color: muted }}>
-            Ref: {booking._id.slice(-8).toUpperCase()}
-          </ThemedText>
+          <View
+            style={[
+              styles.heroStatusBadge,
+              { backgroundColor: "rgba(255,255,255,0.2)" },
+            ]}
+          >
+            <View
+              style={[styles.statusDot, { backgroundColor: statusInfo.color }]}
+            />
+            <ThemedText style={styles.heroStatusText}>
+              {statusInfo.label}
+            </ThemedText>
+          </View>
         </View>
       </View>
 
-      <View style={{ paddingHorizontal: 20 }}>
-        {/* STATUS PILL */}
-        <ThemedCard style={styles.statusCard}>
-          <View
-            style={[
-              styles.statusDot,
-              { backgroundColor: BOOKING_STATUS_MAP[booking.status].color },
-            ]}
-          />
-          <ThemedText type="defaultSemiBold" style={{ flex: 1 }}>
-            {BOOKING_STATUS_MAP[booking.status].label}
-          </ThemedText>
-          <ThemedText style={{ color: muted, fontSize: 12 }}>
-            ID: {booking._id.slice(0, 8).toUpperCase()}
-          </ThemedText>
+      <View style={styles.container}>
+        {/* QUICK INFO SUMMARY */}
+        <ThemedCard style={styles.summaryCard}>
+          <View style={styles.summaryItem}>
+            <ThemedText style={styles.summaryLabel}>PRICE</ThemedText>
+            <ThemedText type="defaultSemiBold">
+              ₦{booking.price.total.toLocaleString()}
+            </ThemedText>
+          </View>
+          <View style={styles.summaryDivider} />
+          <View style={styles.summaryItem}>
+            <ThemedText style={styles.summaryLabel}>MODE</ThemedText>
+            <ThemedText
+              type="defaultSemiBold"
+              style={{ textTransform: "capitalize" }}
+            >
+              {booking.location.type}
+            </ThemedText>
+          </View>
+          <View style={styles.summaryDivider} />
+          <View style={styles.summaryItem}>
+            <ThemedText style={styles.summaryLabel}>REF</ThemedText>
+            <ThemedText type="defaultSemiBold">
+              #{booking._id.slice(-6).toUpperCase()}
+            </ThemedText>
+          </View>
         </ThemedCard>
 
-        {/* LOGISTICS SECTION */}
+        {/* LOGISTICS & DIRECTIONS */}
         <Section title="Logistics" mutedColor={muted}>
           <ThemedCard style={styles.infoCard}>
             <View style={styles.infoRow}>
-              <View style={styles.innerIcon}>
+              <View
+                style={[styles.innerIcon, { backgroundColor: tint + "10" }]}
+              >
                 <Ionicons name="calendar" size={20} color={tint} />
               </View>
-              <View>
-                <ThemedText type="defaultSemiBold">{formattedDate}</ThemedText>
+              <View style={{ flex: 1 }}>
+                <ThemedText type="defaultSemiBold">
+                  {format(scheduledDate, "PPPP")}
+                </ThemedText>
                 <ThemedText style={{ color: muted, fontSize: 13 }}>
-                  {formattedTime}
+                  {format(scheduledDate, "p")}
                 </ThemedText>
               </View>
             </View>
+
             <View style={[styles.divider, { backgroundColor: border }]} />
+
             <View style={styles.infoRow}>
-              <View style={styles.innerIcon}>
+              <View
+                style={[styles.innerIcon, { backgroundColor: tint + "10" }]}
+              >
                 <Ionicons name="location" size={20} color={tint} />
               </View>
               <View style={{ flex: 1 }}>
                 <ThemedText type="defaultSemiBold">
                   {booking.location.type === "home"
                     ? "Home Service"
-                    : "Provider Shop"}
+                    : "In-Shop Service"}
                 </ThemedText>
                 <ThemedText
-                  numberOfLines={1}
+                  numberOfLines={2}
                   style={{ color: muted, fontSize: 13 }}
                 >
-                  {booking.location.textAddress || "GPS Location Provided"}
+                  {booking.location.textAddress ||
+                    "Address details not provided"}
                 </ThemedText>
               </View>
+              {booking.location.type === "shop" && (
+                <TouchableOpacity
+                  style={[styles.directionBtn, { borderColor: tint }]}
+                  onPress={handleGetDirections}
+                >
+                  <Ionicons name="navigate" size={16} color={tint} />
+                  <ThemedText
+                    style={{ color: tint, fontSize: 12, fontWeight: "700" }}
+                  >
+                    Directions
+                  </ThemedText>
+                </TouchableOpacity>
+              )}
             </View>
           </ThemedCard>
         </Section>
 
-        {/* PROVIDER SECTION */}
-        <Section title="Provider" mutedColor={muted}>
+        {/* PROVIDER INFO */}
+        <Section title="Service Provider" mutedColor={muted}>
           <ThemedCard style={styles.providerCard}>
             <Image
               source={
@@ -128,90 +198,100 @@ export default function BookingDetailsScreen({ booking }: Props) {
               <ThemedText type="defaultSemiBold">
                 {booking.provider.firstName}
               </ThemedText>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
-              >
+              <View style={styles.ratingRow}>
                 <Ionicons name="star" size={14} color="#FFB800" />
-                <ThemedText style={{ fontSize: 13 }}>
+                <ThemedText style={styles.ratingText}>
                   {booking.provider.rating.toFixed(1)} Rating
                 </ThemedText>
               </View>
             </View>
-            <TouchableOpacity style={styles.chatButton}>
-              <Ionicons name="chatbubble-ellipses" size={20} color={tint} />
+            <TouchableOpacity
+              style={[styles.chatButton, { backgroundColor: tint + "15" }]}
+            >
+              <Ionicons name="chatbubble-ellipses" size={22} color={tint} />
             </TouchableOpacity>
           </ThemedCard>
         </Section>
 
-        {/* UPDATED PRICE BREAKDOWN */}
-        <Section title="Payment Summary" mutedColor={muted}>
+        {/* TIMELINE / HISTORY */}
+        <Section title="Booking Timeline" mutedColor={muted}>
+          <ThemedCard style={{ padding: 16 }}>
+            <TimelineItem
+              label="Request Placed"
+              time={format(createdDate, "MMM d, yyyy • p")}
+              isLast={false}
+              muted={muted}
+              tint={tint}
+            />
+            <TimelineItem
+              label="Scheduled For"
+              time={format(scheduledDate, "MMM d, yyyy • p")}
+              isLast={true}
+              muted={muted}
+              tint={tint}
+              isActive={true}
+            />
+          </ThemedCard>
+        </Section>
+
+        {/*  PAYMENT SUMMARY */}
+        <Section title="Payment Details" mutedColor={muted}>
           <ThemedCard style={{ padding: 16, gap: 12 }}>
-            <PriceRow label="Base Service Fee" value={booking.price.service} />
-
-            {/* Only show home service fee if it's a home booking and fee > 0 */}
-            {booking.location.type === "home" &&
-              (booking.price.homeServiceFee ?? 0) > 0 && (
-                <PriceRow
-                  label="Home Service Charge"
-                  value={booking.price.homeServiceFee!}
-                />
-              )}
-
+            <PriceRow label="Base Service" value={booking.price.service} />
+            {booking.location.type === "home" && (
+              <PriceRow
+                label="Home Service Fee"
+                value={booking.price.homeServiceFee || 0}
+              />
+            )}
             <View
               style={[
                 styles.divider,
                 { backgroundColor: border, marginVertical: 4 },
               ]}
             />
-
             <View style={styles.totalRow}>
-              <ThemedText type="defaultSemiBold" style={{ fontSize: 16 }}>
-                Total Amount
-              </ThemedText>
-              <ThemedText
-                type="defaultSemiBold"
-                style={{ color: tint, fontSize: 20 }}
-              >
+              <ThemedText type="subtitle">Total Amount</ThemedText>
+              <ThemedText type="title" style={{ color: tint }}>
                 ₦{booking.price.total.toLocaleString()}
               </ThemedText>
             </View>
           </ThemedCard>
         </Section>
 
-        {/* ACTIONS */}
+        {/*  ACTIONS */}
         <View style={styles.actionArea}>
-          {/* CASE 1: ACTIVE BOOKINGS (Pending or Accepted) */}
-          {(booking.status === "pending" || booking.status === "accepted") && (
-            <>
-              <ThemedButton title="Reschedule Booking" />
-              <TouchableOpacity style={styles.cancelBtn}>
-                <ThemedText style={{ color: "#FF3B30", fontWeight: "600" }}>
-                  Cancel Request
-                </ThemedText>
-              </TouchableOpacity>
-            </>
-          )}
-
-          {booking.status === "completed" && (
-            <>
-              <ThemedButton title="Rate Provider" />
-              <ThemedButton title="Rebook" variant="secondary" />
-            </>
-          )}
-          {(booking.status === "cancelled" ||
-            booking.status === "declined") && (
-            <>
-              <ThemedButton title="Find Another Provider" />
-              <ThemedButton title="Rebook" variant="secondary" />
-            </>
-          )}
+          <BookingActionButtons status={booking.status} />
         </View>
       </View>
     </ScrollView>
   );
 }
 
-// Helper components...
+// Sub-components
+const TimelineItem = ({ label, time, isLast, muted, tint, isActive }: any) => (
+  <View style={{ flexDirection: "row", height: isLast ? 40 : 60 }}>
+    <View style={{ alignItems: "center", marginRight: 15 }}>
+      <View
+        style={[
+          styles.timelineDot,
+          { backgroundColor: isActive ? tint : "#DDD" },
+        ]}
+      />
+      {!isLast && (
+        <View style={[styles.timelineLine, { backgroundColor: "#EEE" }]} />
+      )}
+    </View>
+    <View>
+      <ThemedText
+        style={{ fontSize: 14, fontWeight: isActive ? "700" : "500" }}
+      >
+        {label}
+      </ThemedText>
+      <ThemedText style={{ color: muted, fontSize: 12 }}>{time}</ThemedText>
+    </View>
+  </View>
+);
 const PriceRow = ({ label, value }: { label: string; value: number }) => (
   <View style={styles.priceRow}>
     <ThemedText style={{ opacity: 0.6 }}>{label}</ThemedText>
@@ -229,6 +309,82 @@ const Section = ({ title, children, mutedColor }: any) => (
 );
 
 const styles = StyleSheet.create({
+  premiumHero: {
+    height: 200,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  heroOverlay: {
+    alignItems: "center",
+    marginTop: 20,
+  },
+  iconCircleLarge: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  heroServiceName: {
+    color: "white",
+    fontSize: 22,
+    fontWeight: "800",
+    marginTop: 15,
+  },
+  heroStatusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  heroStatusText: {
+    color: "white",
+    fontWeight: "700",
+    fontSize: 12,
+    marginLeft: 6,
+  },
+  container: {
+    paddingHorizontal: 20,
+    marginTop: -15,
+  },
+  summaryCard: {
+    flexDirection: "row",
+    padding: 20,
+    borderRadius: 24,
+    justifyContent: "space-around",
+    elevation: 4,
+    shadowOpacity: 0.1,
+  },
+  summaryItem: { alignItems: "center" },
+  summaryLabel: {
+    fontSize: 10,
+    fontWeight: "800",
+    opacity: 0.5,
+    marginBottom: 4,
+  },
+  summaryDivider: {
+    width: 1,
+    height: "80%",
+    backgroundColor: "rgba(0,0,0,0.05)",
+  },
+  timelineDot: { width: 12, height: 12, borderRadius: 6, zIndex: 2 },
+  timelineLine: { width: 2, flex: 1, zIndex: 1, marginVertical: -2 },
+  ratingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 2,
+  },
+  ratingText: { fontSize: 13, opacity: 0.7 },
   hero: {
     height: 220,
     alignItems: "center",
@@ -303,5 +459,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  directionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    backgroundColor: "transparent",
   },
 });
