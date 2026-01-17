@@ -1,12 +1,13 @@
 import { ThemedText } from "@/components/ui/Themed";
 import ThemedCard from "@/components/ui/Themed/ThemedCard";
-import { SERVICE_META } from "@/constants/services"; // Assuming this exists for icons
+import { SERVICE_META } from "@/constants/services";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { BOOKING_STATUS_MAP } from "@/lib/utils/booking.utils";
-import { BookingDetails } from "@/types/booking.types"; // Path to your type
+import { BookingDetails } from "@/types/booking.types";
 import { FontAwesome6, Ionicons } from "@expo/vector-icons";
-import { format } from "date-fns";
-import React from "react";
+import { format, intervalToDuration } from "date-fns";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   Linking,
@@ -32,15 +33,41 @@ export default function BookingDetailsScreen({
   isRefetching,
   onRefresh,
 }: Props) {
+  const router = useRouter();
   const tint = useThemeColor({}, "tint");
   const bg = useThemeColor({}, "background");
   const muted = useThemeColor({}, "placeholder");
   const border = useThemeColor({}, "border");
-  const cardBg = useThemeColor({}, "card");
 
-  // Format dates using date-fns or native
   const scheduledDate = new Date(booking.scheduledAt);
   const createdDate = new Date(booking.createdAt);
+  const statusInfo = BOOKING_STATUS_MAP[booking.status];
+
+  // COUNTDOWN LOGIC
+  const [timeLeft, setTimeLeft] = useState<string>("");
+
+  useEffect(() => {
+    if (booking.status !== "pending" || !booking.deadlineAt) return;
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      const end = new Date(booking.deadlineAt!);
+
+      if (now >= end) {
+        setTimeLeft("Expiring...");
+        clearInterval(interval);
+        onRefresh();
+      } else {
+        const duration = intervalToDuration({ start: now, end: end });
+        const h = duration.hours || 0;
+        const m = duration.minutes || 0;
+        const s = duration.seconds || 0;
+        setTimeLeft(`${h > 0 ? h + "h " : ""}${m}m ${s}s`);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [booking.deadlineAt, booking.status]);
 
   const handleGetDirections = () => {
     if (!booking?.location?.geoAddress?.coordinates) return;
@@ -53,8 +80,6 @@ export default function BookingDetailsScreen({
     });
     if (url) Linking.openURL(url);
   };
-
-  const statusInfo = BOOKING_STATUS_MAP[booking.status];
 
   return (
     <ScrollView
@@ -100,52 +125,108 @@ export default function BookingDetailsScreen({
       <View style={styles.container}>
         {/* QUICK INFO SUMMARY */}
         <ThemedCard style={styles.summaryCard}>
-          <View style={styles.summaryItem}>
-            <ThemedText style={styles.summaryLabel}>PRICE</ThemedText>
-            <ThemedText type="defaultSemiBold">
-              ₦{booking.price.total.toLocaleString()}
-            </ThemedText>
-          </View>
+          <SummaryItem
+            label="PRICE"
+            value={`₦${booking.price.total.toLocaleString()}`}
+          />
           <View style={styles.summaryDivider} />
-          <View style={styles.summaryItem}>
-            <ThemedText style={styles.summaryLabel}>MODE</ThemedText>
-            <ThemedText
-              type="defaultSemiBold"
-              style={{ textTransform: "capitalize" }}
-            >
-              {booking.location.type}
-            </ThemedText>
-          </View>
+          <SummaryItem label="MODE" value={booking.location.type} capitalize />
           <View style={styles.summaryDivider} />
-          <View style={styles.summaryItem}>
-            <ThemedText style={styles.summaryLabel}>REF</ThemedText>
-            <ThemedText type="defaultSemiBold">
-              #{booking._id.slice(-6).toUpperCase()}
-            </ThemedText>
-          </View>
+          <SummaryItem
+            label="REF"
+            value={`#${booking._id.slice(-6).toUpperCase()}`}
+          />
         </ThemedCard>
 
-        {/* LOGISTICS & DIRECTIONS */}
+        {/* PENDING COUNTDOWN ALERT */}
+        {booking.status === "pending" && timeLeft && (
+          <View
+            style={[
+              styles.alertBox,
+              { backgroundColor: "#FFB80010", borderColor: "#FFB80040" },
+            ]}
+          >
+            <View style={styles.alertHeader}>
+              <Ionicons name="time" size={20} color="#FFB800" />
+              <ThemedText style={[styles.alertTitle, { color: "#CC9400" }]}>
+                Waiting for Provider
+              </ThemedText>
+            </View>
+            <ThemedText style={styles.alertMessage}>
+              The provider has{" "}
+              <ThemedText type="defaultSemiBold">{timeLeft}</ThemedText> to
+              accept this request before it expires.
+            </ThemedText>
+          </View>
+        )}
+
+        {/* EXPIRED / DECLINED ALERT */}
+        {(booking.status === "expired" || booking.status === "declined") && (
+          <View
+            style={[
+              styles.alertBox,
+              {
+                backgroundColor:
+                  booking.status === "expired" ? "#5856D610" : "#FF3B3010",
+                borderColor:
+                  booking.status === "expired" ? "#5856D640" : "#FF3B3040",
+              },
+            ]}
+          >
+            <View style={styles.alertHeader}>
+              <Ionicons
+                name={
+                  booking.status === "expired" ? "hourglass" : "close-circle"
+                }
+                size={20}
+                color={booking.status === "expired" ? "#5856D6" : "#FF3B30"}
+              />
+              <ThemedText
+                style={[
+                  styles.alertTitle,
+                  {
+                    color: booking.status === "expired" ? "#5856D6" : "#FF3B30",
+                  },
+                ]}
+              >
+                {booking.status === "expired"
+                  ? "Request Expired"
+                  : "Request Declined"}
+              </ThemedText>
+            </View>
+            <ThemedText style={styles.alertMessage}>
+              {booking.status === "expired"
+                ? "This provider didn't respond in time. Your request has been automatically cancelled to free up your schedule."
+                : booking.declineReason ||
+                  "The provider is unavailable for this specific time slot."}
+            </ThemedText>
+            <TouchableOpacity
+              style={[
+                styles.rebookBtn,
+                {
+                  backgroundColor:
+                    booking.status === "expired" ? "#5856D6" : "#FF3B30",
+                },
+              ]}
+              // onPress={() => router.push("/(tabs)/explore")}
+            >
+              <ThemedText style={styles.rebookBtnText}>
+                Find Another Provider
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* LOGISTICS */}
         <Section title="Logistics" mutedColor={muted}>
           <ThemedCard style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <View
-                style={[styles.innerIcon, { backgroundColor: tint + "10" }]}
-              >
-                <Ionicons name="calendar" size={20} color={tint} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <ThemedText type="defaultSemiBold">
-                  {format(scheduledDate, "PPPP")}
-                </ThemedText>
-                <ThemedText style={{ color: muted, fontSize: 13 }}>
-                  {format(scheduledDate, "p")}
-                </ThemedText>
-              </View>
-            </View>
-
+            <InfoRow
+              icon="calendar"
+              tint={tint}
+              title={format(scheduledDate, "PPPP")}
+              subtitle={format(scheduledDate, "p")}
+            />
             <View style={[styles.divider, { backgroundColor: border }]} />
-
             <View style={styles.infoRow}>
               <View
                 style={[styles.innerIcon, { backgroundColor: tint + "10" }]}
@@ -162,8 +243,7 @@ export default function BookingDetailsScreen({
                   numberOfLines={2}
                   style={{ color: muted, fontSize: 13 }}
                 >
-                  {booking.location.textAddress ||
-                    "Address details not provided"}
+                  {booking.location.textAddress || "No address provided"}
                 </ThemedText>
               </View>
               {booking.location.type === "shop" && (
@@ -213,28 +293,113 @@ export default function BookingDetailsScreen({
           </ThemedCard>
         </Section>
 
-        {/* TIMELINE / HISTORY */}
+        {/* USER NOTE */}
+        {booking.note && (
+          <Section title="Your Request Note" mutedColor={muted}>
+            <ThemedCard style={{ padding: 16 }}>
+              <ThemedText
+                style={{ fontSize: 14, fontStyle: "italic", opacity: 0.8 }}
+              >
+                "{booking.note}"
+              </ThemedText>
+            </ThemedCard>
+          </Section>
+        )}
+
+        {/* TIMELINE */}
         <Section title="Booking Timeline" mutedColor={muted}>
           <ThemedCard style={{ padding: 16 }}>
             <TimelineItem
               label="Request Placed"
-              time={format(createdDate, "MMM d, yyyy • p")}
-              isLast={false}
+              time={format(new Date(booking.createdAt), "MMM d, yyyy • p")}
+              isLast={
+                !booking.acceptedAt &&
+                !booking.declinedAt &&
+                !booking.cancelledAt &&
+                !booking.rescheduledAt &&
+                booking.status === "pending"
+              }
               muted={muted}
               tint={tint}
+              isActive
             />
-            <TimelineItem
-              label="Scheduled For"
-              time={format(scheduledDate, "MMM d, yyyy • p")}
-              isLast={true}
-              muted={muted}
-              tint={tint}
-              isActive={true}
-            />
+
+            {booking.acceptedAt && (
+              <TimelineItem
+                label="Provider Accepted"
+                time={format(new Date(booking.acceptedAt), "MMM d, yyyy • p")}
+                isLast={booking.status === "accepted" && !booking.rescheduledAt}
+                muted={muted}
+                tint="#0BB45E"
+                isActive
+              />
+            )}
+
+            {booking.rescheduledAt && (
+              <TimelineItem
+                label="Booking Rescheduled"
+                time={format(
+                  new Date(booking.rescheduledAt),
+                  "MMM d, yyyy • p"
+                )}
+                isLast={booking.status === "accepted"} 
+                muted={muted}
+                tint="#5856D6"
+                isActive
+              />
+            )}
+
+            {booking.status === "completed" && (
+              <TimelineItem
+                label="Service Completed"
+                time="Thank you for using our service"
+                isLast
+                muted={muted}
+                tint={tint}
+                isActive
+              />
+            )}
+
+            {booking.declinedAt && (
+              <TimelineItem
+                label="Request Declined"
+                time={format(new Date(booking.declinedAt), "MMM d, yyyy • p")}
+                isLast
+                muted={muted}
+                tint="#FF3B30"
+                isActive
+              />
+            )}
+
+            {booking.cancelledAt && (
+              <TimelineItem
+                label="Cancelled"
+                time={format(new Date(booking.cancelledAt), "MMM d, yyyy • p")}
+                isLast
+                muted={muted}
+                tint="#6B7280"
+                isActive
+              />
+            )}
+
+            {booking.status === "expired" && (
+              <TimelineItem
+                label="Auto-Expired"
+                time={
+                  booking.deadlineAt
+                    ? format(new Date(booking.deadlineAt), "MMM d, p")
+                    : "No response"
+                }
+                isLast
+                muted={muted}
+                tint="#9CA3AF"
+                isActive
+              />
+            )}
           </ThemedCard>
         </Section>
 
-        {/*  PAYMENT SUMMARY */}
+        {/* PAYMENT SUMMARY */}
         <Section title="Payment Details" mutedColor={muted}>
           <ThemedCard style={{ padding: 16, gap: 12 }}>
             <PriceRow label="Base Service" value={booking.price.service} />
@@ -259,16 +424,46 @@ export default function BookingDetailsScreen({
           </ThemedCard>
         </Section>
 
-        {/*  ACTIONS */}
+        {/* ACTIONS */}
         <View style={styles.actionArea}>
-          <BookingActionButtons status={booking.status} />
+          <BookingActionButtons
+            bookingId={booking._id}
+            status={booking.status}
+          />
         </View>
       </View>
     </ScrollView>
   );
 }
 
-// Sub-components
+// --- HELPER COMPONENTS ---
+
+const SummaryItem = ({ label, value, capitalize }: any) => (
+  <View style={styles.summaryItem}>
+    <ThemedText style={styles.summaryLabel}>{label}</ThemedText>
+    <ThemedText
+      type="defaultSemiBold"
+      style={{ textTransform: capitalize ? "capitalize" : "none" }}
+    >
+      {value}
+    </ThemedText>
+  </View>
+);
+
+const InfoRow = ({ icon, tint, title, subtitle }: any) => (
+  <View style={styles.infoRow}>
+    <View style={[styles.innerIcon, { backgroundColor: tint + "10" }]}>
+      <Ionicons name={icon} size={20} color={tint} />
+    </View>
+    <View>
+      <ThemedText type="defaultSemiBold">{title}</ThemedText>
+      <ThemedText style={{ color: "#8E8E93", fontSize: 13 }}>
+        {subtitle}
+      </ThemedText>
+    </View>
+  </View>
+);
+
 const TimelineItem = ({ label, time, isLast, muted, tint, isActive }: any) => (
   <View style={{ flexDirection: "row", height: isLast ? 40 : 60 }}>
     <View style={{ alignItems: "center", marginRight: 15 }}>
@@ -292,6 +487,7 @@ const TimelineItem = ({ label, time, isLast, muted, tint, isActive }: any) => (
     </View>
   </View>
 );
+
 const PriceRow = ({ label, value }: { label: string; value: number }) => (
   <View style={styles.priceRow}>
     <ThemedText style={{ opacity: 0.6 }}>{label}</ThemedText>
@@ -309,15 +505,8 @@ const Section = ({ title, children, mutedColor }: any) => (
 );
 
 const styles = StyleSheet.create({
-  premiumHero: {
-    height: 200,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  heroOverlay: {
-    alignItems: "center",
-    marginTop: 20,
-  },
+  premiumHero: { height: 200, justifyContent: "center", alignItems: "center" },
+  heroOverlay: { alignItems: "center", marginTop: 20 },
   iconCircleLarge: {
     width: 80,
     height: 80,
@@ -352,10 +541,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginLeft: 6,
   },
-  container: {
-    paddingHorizontal: 20,
-    marginTop: -15,
-  },
+  statusDot: { width: 8, height: 8, borderRadius: 4, marginRight: 2 },
+  container: { paddingHorizontal: 20, marginTop: -15 },
   summaryCard: {
     flexDirection: "row",
     padding: 20,
@@ -376,38 +563,23 @@ const styles = StyleSheet.create({
     height: "80%",
     backgroundColor: "rgba(0,0,0,0.05)",
   },
-  timelineDot: { width: 12, height: 12, borderRadius: 6, zIndex: 2 },
-  timelineLine: { width: 2, flex: 1, zIndex: 1, marginVertical: -2 },
-  ratingRow: {
+  alertBox: { marginTop: 20, padding: 16, borderRadius: 20, borderWidth: 1 },
+  alertHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    marginTop: 2,
+    gap: 8,
+    marginBottom: 4,
   },
-  ratingText: { fontSize: 13, opacity: 0.7 },
-  hero: {
-    height: 220,
-    alignItems: "center",
+  alertTitle: { fontSize: 14, fontWeight: "800", textTransform: "uppercase" },
+  alertMessage: { fontSize: 13, lineHeight: 18, opacity: 0.8 },
+  rebookBtn: {
+    marginTop: 12,
+    height: 44,
+    borderRadius: 12,
     justifyContent: "center",
-    paddingTop: 40,
-  },
-  heroContent: { alignItems: "center" },
-  iconBox: {
-    width: 64,
-    height: 64,
-    borderRadius: 22,
     alignItems: "center",
-    justifyContent: "center",
   },
-  statusCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 20,
-    elevation: 2,
-    shadowOpacity: 0.05,
-  },
-  statusDot: { width: 8, height: 8, borderRadius: 4, marginRight: 10 },
+  rebookBtnText: { color: "white", fontWeight: "700", fontSize: 14 },
   sectionTitle: {
     fontSize: 12,
     fontWeight: "800",
@@ -421,7 +593,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.04)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -433,23 +604,22 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: "#eee" },
+  ratingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 2,
+  },
+  ratingText: { fontSize: 13, opacity: 0.7 },
   chatButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(11, 180, 94, 0.1)",
     alignItems: "center",
     justifyContent: "center",
   },
-  actionArea: { marginTop: 32, gap: 12 },
-  mainBtn: {
-    height: 56,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cancelBtn: { height: 56, alignItems: "center", justifyContent: "center" },
-  btnText: { color: "white", fontWeight: "700", fontSize: 16 },
+  timelineDot: { width: 12, height: 12, borderRadius: 6, zIndex: 2 },
+  timelineLine: { width: 2, flex: 1, zIndex: 1, marginVertical: -2 },
   priceRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -460,6 +630,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  actionArea: { marginTop: 32 },
   directionBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -468,6 +639,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 8,
     borderWidth: 1,
-    backgroundColor: "transparent",
   },
 });

@@ -4,8 +4,9 @@ import UpcomingBookings from "@/components/MyBookings/UpcomingBookings";
 import { ThemedText } from "@/components/ui/Themed";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import PagerView from "react-native-pager-view";
 import Animated, {
   SlideInLeft,
   SlideInRight,
@@ -17,25 +18,49 @@ type BookingTab = "pending" | "upcoming" | "past";
 
 export default function BookingListScreen() {
   const params = useLocalSearchParams<{ tab: string }>();
+
+  const tabs: BookingTab[] = ["past", "pending", "upcoming"];
+  const initialIndex = tabs.indexOf((params.tab as BookingTab) || "upcoming");
   const [activeTab, setActiveTab] = useState<BookingTab>(
     (params.tab as BookingTab) || "upcoming"
   );
 
+  const pagerRef = useRef<PagerView>(null);
+
   const backgroundColor = useThemeColor({}, "background");
 
-  useEffect(() => {
-    if (params.tab) {
-      setActiveTab(params.tab as BookingTab);
-    }
-  }, [params.tab]);
+  const onTabPress = (tab: BookingTab, index: number) => {
+    setActiveTab(tab);
+    pagerRef.current?.setPage(index);
+  };
+
+  const onPageSelected = (e: { nativeEvent: { position: number } }) => {
+    const newTab = tabs[e.nativeEvent.position];
+    setActiveTab(newTab);
+  };
   return (
     <SafeAreaView
       edges={["bottom"]}
       style={{ flex: 1, backgroundColor, paddingHorizontal: 8 }}
     >
       <View style={styles.tabsContainer}>
+        {tabs.map((tab, index) => (
+          <Pressable
+            key={tab}
+            style={[styles.tab, activeTab === tab && styles.activeTab]}
+            onPress={() => onTabPress(tab, index)}
+          >
+            <ThemedText
+              style={
+                activeTab === tab ? styles.activeTabText : { fontWeight: "700" }
+              }
+            >
+              {tab}
+            </ThemedText>
+          </Pressable>
+        ))}
         {/* past tab */}
-        <Pressable
+        {/* <Pressable
           style={[styles.tab, activeTab === "past" && styles.activeTab]}
           onPress={() => setActiveTab("past")}
         >
@@ -48,9 +73,9 @@ export default function BookingListScreen() {
           >
             Past
           </ThemedText>
-        </Pressable>
+        </Pressable> */}
         {/* pending tab */}
-        <Pressable
+        {/* <Pressable
           style={[styles.tab, activeTab === "pending" && styles.activeTab]}
           onPress={() => setActiveTab("pending")}
         >
@@ -63,9 +88,9 @@ export default function BookingListScreen() {
           >
             Pending
           </ThemedText>
-        </Pressable>
+        </Pressable> */}
         {/* upcoming tab */}
-        <Pressable
+        {/* <Pressable
           style={[styles.tab, activeTab === "upcoming" && styles.activeTab]}
           onPress={() => setActiveTab("upcoming")}
         >
@@ -78,37 +103,42 @@ export default function BookingListScreen() {
           >
             Upcoming
           </ThemedText>
-        </Pressable>
+        </Pressable> */}
       </View>
 
-      {/* Content */}
-      {activeTab === "pending" && (
+      <PagerView
+        ref={pagerRef}
+        style={{ flex: 1 }}
+        initialPage={initialIndex}
+        onPageSelected={onPageSelected}
+      >
         <Animated.View
+          key="0"
           entering={SlideInLeft.duration(250)}
+          exiting={SlideOutLeft.duration(200)}
+          style={{ flex: 1 }}
+        >
+          <PastBookings />
+        </Animated.View>
+
+        <Animated.View
+          key="1"
+          entering={SlideInRight.duration(250)}
           exiting={SlideOutLeft.duration(200)}
           style={{ flex: 1 }}
         >
           <PendingBookings />
         </Animated.View>
-      )}
-      {activeTab === "upcoming" && (
+
         <Animated.View
+          key="2"
           entering={SlideInRight.duration(250)}
           exiting={SlideOutLeft.duration(200)}
           style={{ flex: 1 }}
         >
           <UpcomingBookings />
         </Animated.View>
-      )}
-      {activeTab === "past" && (
-        <Animated.View
-          entering={SlideInRight.duration(250)}
-          exiting={SlideOutLeft.duration(200)}
-          style={{ flex: 1 }}
-        >
-          <PastBookings />
-        </Animated.View>
-      )}
+      </PagerView>
     </SafeAreaView>
   );
 }
@@ -116,11 +146,15 @@ export default function BookingListScreen() {
 const styles = StyleSheet.create({
   tabsContainer: {
     flexDirection: "row",
+    paddingHorizontal: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(0,0,0,0.05)",
     marginVertical: 12,
   },
   tab: {
     paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
+    marginRight: 8,
   },
   activeTab: {
     borderBottomWidth: 2,

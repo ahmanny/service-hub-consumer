@@ -1,42 +1,43 @@
-import OnboardingScreenLayout from "@/components/layouts/OnboardingScreenLayout";
 import { ThemedButton, ThemedText, ThemedView } from "@/components/ui/Themed";
-import { fontSize, radius, spacing } from "@/constants/Layout";
+import { spacing } from "@/constants/Layout";
 import {
   useGetOtpCooldown,
   useResendOtp,
   useVerifyOtp,
 } from "@/hooks/auth/useAuths";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useHeaderHeight } from "@react-navigation/elements";
+import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Platform,
-  Text,
+  StyleSheet,
   ToastAndroid,
-  Vibration,
   View,
 } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
 
 export default function VerifyOTP() {
   const router = useRouter();
+  const headerHeight = useHeaderHeight();
   const { phone } = useLocalSearchParams<{ phone: string }>();
-  const displayPhone = phone || "No number provided";
-  const [otp, setOtp] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(0);
-  const timerRef = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { mutateAsync: verifyMutateAsync } = useVerifyOtp();
   const { mutateAsync: resendMutateAsync, isPending: resending } =
     useResendOtp();
   const { mutateAsync: getCooldownMutateAsync } = useGetOtpCooldown();
 
-  const formatTime = (seconds: number) =>
-    `${Math.floor(seconds / 60)
-      .toString()
-      .padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
+  const tint = useThemeColor({}, "tint");
+  const border = useThemeColor({}, "border");
+  const background = useThemeColor({}, "card");
+  const textColor = useThemeColor({}, "text");
 
   const startTimer = useCallback((duration: number) => {
     setSecondsLeft(duration);
@@ -44,7 +45,7 @@ export default function VerifyOTP() {
     timerRef.current = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
-          clearInterval(timerRef.current!);
+          if (timerRef.current) clearInterval(timerRef.current);
           return 0;
         }
         return prev - 1;
@@ -52,7 +53,7 @@ export default function VerifyOTP() {
     }, 1000);
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchCooldown = async () => {
       if (!phone) return;
       try {
@@ -66,123 +67,124 @@ export default function VerifyOTP() {
     };
   }, [phone]);
 
-  const handleVerify = async () => {
-    if (otp.length < 4) {
-      Alert.alert("Invalid OTP", "Please enter full code");
-      return;
-    }
+  const handleVerify = async (otpCode: string) => {
     setLoading(true);
     try {
-      await verifyMutateAsync({ phone, otp });
-      Vibration.vibrate(50);
+      await verifyMutateAsync({ phone, otp: otpCode });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.push("/(onboarding)");
     } catch (err: any) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      const msg = err.response?.data?.message || err.message || "Invalid Code";
       Platform.OS === "android"
-        ? ToastAndroid.show(err.message || "Failed", ToastAndroid.LONG)
-        : Alert.alert("Error", err.message || "Failed");
-    } finally {
+        ? ToastAndroid.show(msg, ToastAndroid.LONG)
+        : Alert.alert("Verification Failed", msg);
       setLoading(false);
     }
+  };
+
+  const onFilled = (code: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    handleVerify(code);
   };
 
   const handleResend = async () => {
     if (secondsLeft > 0 || resending) return;
     try {
       const res = await resendMutateAsync({ phone });
-      Vibration.vibrate(50);
-      Platform.OS === "android"
-        ? ToastAndroid.show(res.message, ToastAndroid.SHORT)
-        : Alert.alert("Success", res.message);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       startTimer(res.cooldown);
     } catch (err: any) {
-      Platform.OS === "android"
-        ? ToastAndroid.show(err.message || "Failed", ToastAndroid.LONG)
-        : Alert.alert("Error", err.message || "Failed");
-    } finally {
-      setOtp("");
+      Alert.alert("Error", "Could not resend code.");
     }
   };
 
-  const border = useThemeColor({}, "border");
-  const background = useThemeColor({}, "card");
-  const textColor = useThemeColor({}, "text");
-
   return (
-    <OnboardingScreenLayout contentPaddingBottom={0}>
-      <ThemedView
-        style={{ flex: 1, paddingHorizontal: spacing.sm, paddingTop: 45 }}
-      >
-        <View
-          style={{ flex: 1, justifyContent: "flex-start", gap: spacing.md }}
-        >
-          <ThemedText
-            type="title"
-            style={{ fontSize: fontSize.xxl, fontWeight: "700" }}
-          >
-            Verify OTP
+    <ThemedView style={[styles.container]}>
+      <View style={styles.content}>
+        <View style={styles.textGroup}>
+          <ThemedText type="title" style={styles.title}>
+            Verify it's you
           </ThemedText>
-          <ThemedText>Enter the 4-digit code sent to {displayPhone}</ThemedText>
-          <OtpInput
-            numberOfDigits={4}
-            autoFocus
-            onTextChange={setOtp}
-            theme={{
-              containerStyle: {
-                justifyContent: "space-between",
-                width: "100%",
-                marginBottom: 10,
-              },
-              pinCodeContainerStyle: {
-                width: 60,
-                height: 60,
-                borderRadius: radius.md,
-                borderWidth: 1,
-                borderColor: border,
-                backgroundColor: background,
-                justifyContent: "center",
-                alignItems: "center",
-              },
-              pinCodeTextStyle: {
-                fontSize: fontSize.xl,
-                fontWeight: "600",
-                color: textColor,
-              },
-              focusedPinCodeContainerStyle: { borderColor: "#1E8A4B" },
-            }}
-          />
-          <ThemedText
-            style={{
-              textAlign: "center",
-              marginTop: spacing.md,
-              color: "#666",
-            }}
-          >
-            {secondsLeft > 0 ? (
-              `Resend in ${formatTime(secondsLeft)}`
-            ) : (
-              <Text
-                style={{
-                  color: "#1E8A4B",
-                  fontWeight: "600",
-                  opacity: resending || secondsLeft > 0 ? 0.5 : 1,
-                }}
-                onPress={handleResend}
-              >
-                {resending ? "Resending..." : "Resend code"}
-              </Text>
-            )}
+          <ThemedText style={styles.subtitle}>
+            Enter the code sent to{" "}
+            <ThemedText style={[styles.phoneHighlight, { color: textColor }]}>
+              {phone}
+            </ThemedText>
           </ThemedText>
         </View>
 
-        <View>
-          <ThemedButton
-            title="Verify"
-            loading={loading}
-            onPress={handleVerify}
-            disabled={otp.length < 4}
-          />
+        <View style={styles.otpWrapper}>
+          {loading && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color={tint} />
+              <ThemedText style={styles.loadingText}>Verifying...</ThemedText>
+            </View>
+          )}
+
+          <View style={{ opacity: loading ? 0.3 : 1 }}>
+            <OtpInput
+              numberOfDigits={4}
+              autoFocus
+              onFilled={onFilled}
+              disabled={loading}
+              theme={{
+                containerStyle: styles.otpContainer,
+                pinCodeContainerStyle: {
+                  ...styles.pinBox,
+                  borderColor: border,
+                  backgroundColor: background,
+                },
+                pinCodeTextStyle: { ...styles.pinText, color: textColor },
+                focusedPinCodeContainerStyle: {
+                  borderColor: tint,
+                  borderWidth: 2,
+                },
+              }}
+            />
+          </View>
         </View>
-      </ThemedView>
-    </OnboardingScreenLayout>
+
+        <View style={styles.footer}>
+          {secondsLeft > 0 ? (
+            <ThemedText style={styles.timerText}>
+              Resend code in{" "}
+              <ThemedText style={{ color: tint }}>{secondsLeft}s</ThemedText>
+            </ThemedText>
+          ) : (
+            <ThemedButton
+              title={resending ? "Sending..." : "Resend Code"}
+              variant="secondary"
+              onPress={handleResend}
+              style={styles.resendBtn}
+            />
+          )}
+        </View>
+      </View>
+    </ThemedView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, paddingHorizontal: spacing.xl },
+  content: { flex: 1, gap: 40 },
+  textGroup: { gap: 8 },
+  title: { fontSize: 32, fontWeight: "800", letterSpacing: -1 },
+  subtitle: { fontSize: 16, opacity: 0.6, lineHeight: 24 },
+  phoneHighlight: { fontWeight: "700" },
+  otpWrapper: { position: "relative", justifyContent: "center", minHeight: 80 },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 10,
+  },
+  loadingText: { fontSize: 12, fontWeight: "600", opacity: 0.8 },
+  otpContainer: { width: "100%", justifyContent: "center", gap: 16 },
+  pinBox: { width: 70, height: 70, borderRadius: 20, borderWidth: 1.5 },
+  pinText: { fontSize: 24, fontWeight: "700" },
+  footer: { alignItems: "center" },
+  timerText: { fontSize: 14, fontWeight: "500", opacity: 0.7 },
+  resendBtn: { backgroundColor: "transparent", height: 40 },
+});

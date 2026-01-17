@@ -26,7 +26,8 @@ export type BookingStatus =
     | "accepted"
     | "declined"
     | "completed"
-    | "cancelled";
+    | "cancelled"
+    | "expired";
 
 type BookingBase = {
     _id: string;
@@ -57,6 +58,16 @@ export type BookingDetails = BookingBase & {
         homeServiceFee: number | null
         total: number
     }
+    note?: string;
+    declineReason?: string;
+    expiredMessage?: string;
+
+    scheduledAt: Date;
+    deadlineAt?: Date;
+    cancelledAt?: Date;
+    declinedAt?: Date;
+    acceptedAt?: Date;
+    rescheduledAt?: Date;
 }
 export type BookingListItem = BookingBase & {
     price: number;
@@ -64,30 +75,23 @@ export type BookingListItem = BookingBase & {
 };
 
 
-// export interface IBooking {
-//     consumerId: Types.ObjectId;
-//     providerId: Types.ObjectId;
-
-//     service: string;
-//     serviceName: string;
-
-//     scheduledAt: Date;
-
-//     location: {
-//         type: "home" | "shop";
-//         geoAddress?: GeoAddress;
-//         textAddress?: string | IProviderShopAddress;
-//     }
-
-//     note?: string;
-
-//     status: "pending" | "accepted" | "declined" | "completed" | "cancelled";
-// }
 
 
+
+
+
+
+// Api payloads types
 export interface fetchBookingsParams {
     tab?: "upcoming" | "past" | "pending" | "all";
     status?: BookingStatus;
     page?: number;
     limit?: number;
 }
+
+export type BookingActionPayload = {
+    bookingId: string;
+    action: "cancel" | "reschedule";
+    reason?: string;
+    newScheduledAt?: string;
+};

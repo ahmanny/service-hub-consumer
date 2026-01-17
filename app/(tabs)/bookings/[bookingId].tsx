@@ -1,7 +1,6 @@
 import BookingDetailsScreen from "@/components/screens/BookingDetailsScreen";
 import BookingDetailsSkeleton from "@/components/skeletons/BookingDetailsSkeleton";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { MOCK_BOOKING_DATA } from "@/data/testDatas";
 import { useBookingDetails } from "@/hooks/consumer/useBooking";
 import * as Burnt from "burnt";
 import { useLocalSearchParams } from "expo-router";
@@ -15,11 +14,12 @@ export default function BookingPage() {
   useEffect(() => {
     if (newBooking === "true") {
       Burnt.toast({
-        title: "Success!",
+        title: "Booking Requested",
+        message: "We've sent your request to the provider.",
         preset: "done",
-        message: "Booking request sent",
         haptic: "success",
-        duration: 20,
+        duration: 3,
+        shouldDismissByDrag: true,
       });
     }
   }, [newBooking]);
@@ -32,12 +32,9 @@ export default function BookingPage() {
     refetch();
   }, [refetch]);
 
-  // BookingDetailsSkeleton
-
   if (isLoading) {
     return (
       <>
-        {/* <Stack.Screen options={{ title: "Loading..." }} /> */}
         <BookingDetailsSkeleton />
       </>
     );
@@ -51,8 +48,6 @@ export default function BookingPage() {
       />
     );
   }
-
-  const booking = MOCK_BOOKING_DATA;
 
   return (
     <BookingDetailsScreen

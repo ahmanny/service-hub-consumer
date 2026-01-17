@@ -2,6 +2,7 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { ShimmerSkeleton } from "../ui/ShimmerSkeleton";
+import ThemedCard from "../ui/Themed/ThemedCard";
 
 export default function BookingDetailsSkeleton() {
   const bg = useThemeColor({}, "background");
@@ -19,14 +20,14 @@ export default function BookingDetailsSkeleton() {
 
       <View style={{ paddingHorizontal: 20 }}>
         {/* STATUS CARD SKELETON */}
-        <View style={styles.cardSkeleton}>
+        <ThemedCard style={styles.cardSkeleton}>
           <ShimmerSkeleton width={20} height={20} borderRadius={10} />
           <ShimmerSkeleton width={120} height={20} borderRadius={6} />
-        </View>
+        </ThemedCard>
 
         {/* LOGISTICS SECTION */}
         <SkeletonSection title="Logistics">
-          <View style={styles.infoCardSkeleton}>
+          <ThemedCard style={styles.infoCardSkeleton}>
             <View style={styles.infoRow}>
               <ShimmerSkeleton width={40} height={40} borderRadius={12} />
               <View style={{ gap: 6 }}>
@@ -41,19 +42,19 @@ export default function BookingDetailsSkeleton() {
                 <ShimmerSkeleton width={200} height={14} borderRadius={4} />
               </View>
             </View>
-          </View>
+          </ThemedCard>
         </SkeletonSection>
 
         {/* PROVIDER SECTION */}
         <SkeletonSection title="Provider">
-          <View style={styles.providerCardSkeleton}>
+          <ThemedCard style={styles.providerCardSkeleton}>
             <ShimmerSkeleton width={56} height={56} borderRadius={28} />
             <View style={{ flex: 1, gap: 6 }}>
               <ShimmerSkeleton width={120} height={18} borderRadius={4} />
               <ShimmerSkeleton width={80} height={14} borderRadius={4} />
             </View>
             <ShimmerSkeleton width={44} height={44} borderRadius={22} />
-          </View>
+          </ThemedCard>
         </SkeletonSection>
 
         {/* PAYMENT SUMMARY */}
@@ -110,12 +111,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     borderRadius: 20,
-    backgroundColor: "white", // Or themed card color
     gap: 12,
-    marginTop: -20, // To match the overlap if you have one
+    marginTop: -15,
   },
   infoCardSkeleton: {
-    backgroundColor: "white",
     borderRadius: 20,
     padding: 8,
   },
@@ -130,7 +129,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 12,
     borderRadius: 20,
-    backgroundColor: "white",
     gap: 12,
   },
   priceRow: {

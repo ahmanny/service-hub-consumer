@@ -62,6 +62,11 @@ export function MyBookingCard({
       bg: "#F2F2F2",
       text: "#6B7280",
     },
+    expired: {
+      label: "Expired",
+      bg: "#F5F5F5",
+      text: "#9CA3AF",
+    },
   }[status];
 
   const CAN_REBOOK: BookingStatus[] = ["completed", "cancelled", "declined"];

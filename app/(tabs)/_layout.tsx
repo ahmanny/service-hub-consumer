@@ -43,16 +43,7 @@ export default function TabsLayout() {
           options={{
             title: "Home",
             tabBarIcon: ({ color }) => (
-              <IconSymbol size={28} name="house.fill" color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="search"
-          options={{
-            title: "Search",
-            tabBarIcon: ({ color }) => (
-              <IconSymbol size={28} name="magnifyingglass" color={color} />
+              <IconSymbol size={30} name="house.fill" color={color} />
             ),
           }}
         />
@@ -61,7 +52,7 @@ export default function TabsLayout() {
           options={{
             title: "Bookings",
             tabBarIcon: ({ color }) => (
-              <IconSymbol size={28} name="calendar" color={color} />
+              <IconSymbol size={30} name="calendar" color={color} />
             ),
           }}
         />
@@ -70,7 +61,7 @@ export default function TabsLayout() {
           options={{
             title: "Profile",
             tabBarIcon: ({ color }) => (
-              <IconSymbol size={28} name="person.crop.circle" color={color} />
+              <IconSymbol size={30} name="person.crop.circle" color={color} />
             ),
           }}
         />

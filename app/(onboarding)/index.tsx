@@ -37,7 +37,7 @@ export default function ProfileCompletion() {
   const onSubmit = async (data: ProfileFormData) => {
     try {
       await mutateAsync(data);
-      router.replace("/(tabs)");
+      router.replace("/(tabs)/home");
     } catch (err: any) {
       console.log(err);
       Vibration.vibrate(50);

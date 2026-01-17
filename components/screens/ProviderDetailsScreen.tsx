@@ -22,9 +22,9 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { ApiError } from "@/types/api.error.types";
 import { IProviderProfile } from "@/types/provider.types";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { router } from "expo-router";
 import { Alert } from "react-native";
 import { RefreshControl } from "react-native-gesture-handler";
+import { WaitingBooking } from "../BookingRequest/WaitingBooking";
 import { BookingBottomSheet } from "../BottomSheets/BookingBottomSheet";
 
 export default function ProviderDetailsScreen({
@@ -38,6 +38,12 @@ export default function ProviderDetailsScreen({
 }) {
   const { mutateAsync: sendBooking, isPending } = useSendBookingRequest();
   const sheetRef = useRef<BottomSheetModal>(null);
+
+  const [successData, setSuccessData] = useState<{
+    id: string;
+    deadline: Date;
+    firstName: string;
+  } | null>(null);
 
   const divider = useThemeColor({}, "border");
   const tint = useThemeColor({}, "tint");
@@ -53,16 +59,15 @@ export default function ProviderDetailsScreen({
   const currentPrice = selectedService?.price ?? data.basePriceFrom ?? 0;
 
   const handleServiceSelect = (value: string) => {
+    setSuccessData(null);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedServiceValue(value);
   };
 
   const handleBookingTrigger = () => {
+    setSuccessData(null);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     sheetRef.current?.present();
-    console.log(
-      `Booking provider ${data.firstName} for service: ${selectedService?.name} (${selectedServiceValue}) at ₦${currentPrice}`
-    );
   };
   return (
     <ThemedView style={styles.container}>
@@ -109,6 +114,16 @@ export default function ProviderDetailsScreen({
           provider={data}
           selectedService={selectedService}
           isBooking={isPending}
+          successContent={
+            successData ? (
+              <WaitingBooking
+                bookingId={successData.id}
+                providerFirstName={successData.firstName}
+                deadlineAt={successData.deadline}
+                onClose={() => sheetRef.current?.dismiss()}
+              />
+            ) : null
+          }
           onConfirm={async (details) => {
             try {
               const response = await sendBooking(details);
@@ -119,17 +134,13 @@ export default function ProviderDetailsScreen({
                 Haptics.NotificationFeedbackType.Success
               );
 
-              sheetRef.current?.dismiss();
-              setTimeout(() => {
-                router.replace({
-                  pathname: "/(tabs)/bookings/[bookingId]",
-                  params: {
-                    bookingId: response.bookingId,
-                    status: "pending",
-                    newBooking: "true",
-                  },
-                });
-              }, 100);
+              // Set the success data instead of navigating immediately
+              setSuccessData({
+                id: response.bookingId,
+                deadline:
+                  response.deadlineAt || new Date(Date.now() + 30 * 60000),
+                firstName: response.firstName,
+              });
             } catch (error) {
               const err = error as ApiError;
               const message =

@@ -1,4 +1,4 @@
-import HomeScreen from "@/components/screens/HomeScreen";
+import HomeScreen from "@/components/screens/homeStack/HomeScreen";
 import Mapbox from "@rnmapbox/maps";
 import React from "react";
 

@@ -1,15 +1,63 @@
+import { useBookingActions } from "@/hooks/consumer/useBooking";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { BookingDetails } from "@/types/booking.types";
+import { router } from "expo-router";
 import React from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { ThemedButton, ThemedText } from "../ui/Themed";
 
 interface ActionProps {
   status: BookingDetails["status"];
+  bookingId: string;
 }
 
-export default function BookingActionButtons({ status }: ActionProps) {
+export default function BookingActionButtons({
+  status,
+  bookingId,
+}: ActionProps) {
   const tint = useThemeColor({}, "tint");
+
+  const { mutate, isPending } = useBookingActions();
+
+  // Handle Cancellation with Confirmation
+  const handleCancel = () => {
+    Alert.alert(
+      "Cancel Booking",
+      "Are you sure you want to cancel this request?",
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Yes, Cancel",
+          style: "destructive",
+          onPress: () =>
+            mutate({
+              bookingId,
+              action: "cancel",
+              reason: "Cancelled by user",
+            }),
+        },
+      ]
+    );
+  };
+
+  // Navigate to Reschedule Screen
+  const handleRescheduleNav = () => {
+    // We pass the bookingId so the next screen knows what to update
+    router.push({
+      pathname: "/(modals)/reschedule-booking",
+      params: { bookingId },
+    });
+  };
+
+  if (isPending) {
+    return <ActivityIndicator color={tint} style={{ marginVertical: 20 }} />;
+  }
 
   // Case: ACTIVE / PENDING
   if (status === "pending" || status === "accepted") {
@@ -17,12 +65,9 @@ export default function BookingActionButtons({ status }: ActionProps) {
       <View style={{ gap: 12 }}>
         <ThemedButton
           title="Reschedule Booking"
-          onPress={() => console.log("Action: Reschedule clicked")}
+          onPress={handleRescheduleNav}
         />
-        <TouchableOpacity
-          style={styles.cancelBtn}
-          onPress={() => console.log("Action: Cancel Request clicked")}
-        >
+        <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
           <ThemedText style={{ color: "#FF3B30", fontWeight: "700" }}>
             Cancel Request
           </ThemedText>
@@ -79,7 +124,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(255, 59, 48, 0.2)", // Subtle red border
+    borderColor: "rgba(255, 59, 48, 0.2)",
     marginTop: 4,
   },
 });
